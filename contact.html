@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacto - VITALYX STUDIOS</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="bienvenida.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Splash Bienvenida -->
+    <div id="splash" class="splash" role="dialog" aria-modal="true" aria-labelledby="splash-title" aria-describedby="splash-desc">
+        <div class="splash__grid" aria-hidden="true"></div>
+        <div class="splash__inner">
+            <div class="splash__cube-wrap" aria-hidden="true">
+                <div class="splash__cube">
+                    <span class="splash__cube-face splash__cube-face--front">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/blender/blender-original.svg" alt="Logo Blender en cara frontal">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--back">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/roblox.svg" alt="Logo Roblox en cara trasera">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--right">
+                        <img class="splash__cube-logo splash__cube-logo--studio" src="https://cdn.simpleicons.org/robloxstudio" alt="Logo Roblox Studio en cara derecha">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--left">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/visualstudio/visualstudio-plain.svg" alt="Logo Visual Studio en cara izquierda">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--top">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/vscode/vscode-original.svg" alt="Logo Visual Studio Code en cara superior">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--bottom">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/blender/blender-original.svg" alt="Logo Blender en cara inferior">
+                    </span>
+                </div>
+            </div>
+            <h2 id="splash-title" class="splash__title">VITALYX STUDIOS</h2>
+            <p id="splash-desc" class="splash__desc">Bienvenido a VITALYX STUDIOS. Presiona iniciar para descubrir nuestro ecosistema de desarrollo de videojuegos.</p>
+            <button id="splash-enter-btn" class="splash__enter-btn" autofocus>Iniciar</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-text">VITALYX STUDIOS</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="web-development.html">Servicios</a></li>
+                <li><a href="portfolio.html">Portfolio</a></li>
+                <li><a href="contact.html" class="active">Contacto</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="contact.html" class="btn btn-primary">Construir Proyecto</a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="web-development.html">Servicios</a></li>
+            <li><a href="portfolio.html">Portfolio</a></li>
+            <li><a href="contact.html">Contacto</a></li>
+        </ul>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="hero__floating-cards" aria-hidden="true">
+                <span class="hero__float-card card-1"></span>
+                <span class="hero__float-card card-2"></span>
+                <span class="hero__float-card card-3"></span>
+                <span class="hero__float-card card-4"></span>
+                <span class="hero__float-card card-5"></span>
+                <span class="hero__float-card card-6"></span>
+            </div>
+            <h1 class="animate-on-scroll">Contacto</h1>
+            <p class="animate-on-scroll">Hablemos sobre tu proyecto de juego en Roblox</p>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section-modern">
+        <div class="container">
+            <div class="contact-card animate-on-scroll">
+                <h2 class="contact-title">Contáctanos</h2>
+                <p class="contact-subtitle">¿Tienes una idea para un juego en Roblox? Completa el formulario y nuestro equipo te responderá pronto.</p>
+                <form class="contact-form-modern" id="contactForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Nombre completo *</label>
+                            <input type="text" id="name" name="name" placeholder="Tu nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" placeholder="tu@email.com" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="discord">Usuario de Discord</label>
+                            <input type="text" id="discord" name="discord" placeholder="Tu usuario de Discord">
+                        </div>
+                        <div class="form-group">
+                            <label for="budget">Presupuesto estimado</label>
+                            <select id="budget" name="budget">
+                                <option value="">Selecciona un rango</option>
+                                <option value="100-500">$100 - $500 USD</option>
+                                <option value="500-1000">$500 - $1,000 USD</option>
+                                <option value="1000-5000">$1,000 - $5,000 USD</option>
+                                <option value="other">Otro</option>
+                            </select>
+                            <div class="custom-budget-group">
+                                <label for="custom-budget">Indica tu presupuesto</label>
+                                <input type="number" id="custom-budget" name="custom_budget" class="custom-budget" placeholder="Ej. 1200" min="0" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row form-row--centered form-row--stacked">
+                        <div class="form-group form-group--centered">
+                            <label for="message">Cuéntanos sobre tu proyecto *</label>
+                            <textarea id="message" name="message" rows="3" placeholder="Describe tu idea de juego en Roblox, objetivos, género, etc." required></textarea>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="newsletter" name="newsletter">
+                            <label for="newsletter">Quiero recibir noticias y actualizaciones sobre VITALYX STUDIOS</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Enviar Mensaje</button>
+                    <p class="form-note">* Al enviar aceptas nuestra <a href="privacy.html">Política de Privacidad</a>.</p>
+                </form>
+                <div class="contact-info-modern">
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i> <a href="mailto:contact@vitalyxstudios.com">vitalyxstudios@gmail.com</a>
+                    </div>
+                    <div class="info-item">
+                        <a href="https://www.roblox.com/es/communities/667560354/Vitalyx-Studios#!/about" target="_blank" title="Roblox">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="22" height="22" fill="currentColor">
+                                <rect x="7" y="7" width="36" height="36" rx="6" transform="rotate(15 25 25)"/>
+                                <rect x="22" y="22" width="6" height="6" rx="1.5" fill="#191919"/>
+                            </svg>
+                            Roblox
+                        </a>
+                        <a href="https://discord.gg/P3aHXGMqn" target="_blank" style="margin-left: 15px;">
+                            <i class="fab fa-discord"></i> Discord
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">PREGUNTAS FRECUENTES</span>
+                <h2 class="section-title">Preguntas frecuentes</h2>
+            </div>
+            <div class="faq-grid">
+                <div class="faq-item animate-on-scroll" data-delay="0">
+                    <button class="faq-question">
+                        <span>¿Cuánto tiempo toma desarrollar un juego en Roblox?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>El tiempo de desarrollo varía según la complejidad del proyecto. Un juego simple puede tomar de 2 a 4 semanas, mientras que proyectos más grandes pueden requerir de 2 a 6 meses. Durante la primera consulta, te damos una estimación basada en tus requisitos específicos.</p>
+                    </div>
+                </div>
+                <div class="faq-item animate-on-scroll" data-delay="100">
+                    <button class="faq-question">
+                        <span>¿Cuánto cuesta desarrollar un juego en Roblox?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>El costo depende de múltiples factores: tipo de juego, complejidad de mecánicas, cantidad de assets, sistemas de monetización, etc. Nuestros proyectos comienzan desde $500 USD para juegos simples, hasta proyectos completos de $10,000+ USD.</p>
+                    </div>
+                </div>
+                <div class="faq-item animate-on-scroll" data-delay="200">
+                    <button class="faq-question">
+                        <span>¿Necesito saber programar para trabajar con ustedes?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>¡Para nada! Muchos de nuestros clientes vienen con solo una idea o concepto. Nuestro equipo te guiará a través de todo el proceso. Solo necesitas una visión clara de lo que quieres crear. Nosotros manejamos toda la parte técnica.</p>
+                    </div>
+                </div>
+                <div class="faq-item animate-on-scroll" data-delay="300">
+                    <button class="faq-question">
+                        <span>¿Pueden ayudarme a monetizar mi juego?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>¡Sí! Ofrecemos servicios de monetización que incluyen Game Passes, Developer Products, catálogo de items y estrategias de conversión. Te ayudamos a maximizar tus ingresos en Roblox mientras mantienes una buena experiencia para los jugadores.</p>
+                    </div>
+                </div>
+                <div class="faq-item animate-on-scroll" data-delay="400">
+                    <button class="faq-question">
+                        <span>¿Qué tipo de juegos pueden crear en Roblox?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Podemos crear cualquier tipo de juego en Roblox: Tycoons, Obby/Courses, Juegos de Horror, Simulator Games, Juegos de Ciudad, y más. Nuestro equipo tiene experiencia en todos los géneros populares de Roblox.</p>
+                    </div>
+                </div>
+                <div class="faq-item animate-on-scroll" data-delay="500">
+                    <button class="faq-question">
+                        <span>¿Ofrecen soporte después del lanzamiento?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>¡Sí! Ofrecemos paquetes de soporte post-lanzamiento que incluyen actualizaciones, correcciones de bugs, nuevo contenido y mantenimiento. También podemos ayudarte con marketing continuo para mantener y hacer crecer tu base de jugadores.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-main">
+                        <div class="footer-brand">
+                            <a href="index.html" class="logo">
+                                <span class="logo-text">VITALYX STUDIOS</span>
+                            </a>
+                            <p>Estudio especializado en desarrollo de juegos para Roblox. Creamos experiencias que aman los jugadores.</p>
+                        </div>
+                        <div class="footer-links">
+                            <div class="footer-column">
+                                <h4>PÁGINAS</h4>
+                                <ul>
+                                    <li><a href="index.html">Inicio</a></li>
+                                    <li><a href="web-development.html">Servicios</a></li>
+                                    <li><a href="portfolio.html">Portfolio</a></li>
+                                    <li><a href="contact.html">Contacto</a></li>
+                                </ul>
+                            </div>
+                            <div class="footer-column">
+                                <h4>CONTACTO</h4>
+                                <ul>
+                                    <li><a href="mailto:vitalyxstudios@gmail.com">vitalyxstudios@gmail.com</a></li>
+                                <li><a href="https://www.roblox.com/es/communities/667560354/Vitalyx-Studios#!/about" target="_blank" title="Roblox" style="display:inline-block;vertical-align:middle;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="22" height="22" fill="#cccccc" style="display:inline-block;vertical-align:middle;">
+                                        <rect x="7" y="7" width="36" height="36" rx="6" transform="rotate(15 25 25)"/>
+                                        <rect x="22" y="22" width="6" height="6" rx="1.5" fill="#191919"/>
+                                    </svg>
+                                    <span style="vertical-align:middle;margin-left:-1px;">Roblox</span>
+                                </a></li>
+                                <li><a href="https://discord.gg/P3aHXGMqn" target="_blank" title="Discord"><i class="fab fa-discord"></i> Discord</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer-bottom">
+                        <p>&copy; 2026 VITALYX STUDIOS. Todos los derechos reservados</p>
+                        <div class="footer-legal">
+                            <a href="privacy.html">Política de Privacidad</a>
+                            <a href="terms.html">Términos</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
