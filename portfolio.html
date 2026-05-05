@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - VITALYX STUDIOS Roblox Games</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="bienvenida.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Splash Bienvenida -->
+    <div id="splash" class="splash" role="dialog" aria-modal="true" aria-labelledby="splash-title" aria-describedby="splash-desc">
+        <div class="splash__grid" aria-hidden="true"></div>
+        <div class="splash__inner">
+            <div class="splash__cube-wrap" aria-hidden="true">
+                <div class="splash__cube">
+                    <span class="splash__cube-face splash__cube-face--front">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/blender/blender-original.svg" alt="Logo Blender en cara frontal">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--back">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/roblox.svg" alt="Logo Roblox en cara trasera">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--right">
+                        <img class="splash__cube-logo splash__cube-logo--studio" src="https://cdn.simpleicons.org/robloxstudio" alt="Logo Roblox Studio en cara derecha">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--left">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/visualstudio/visualstudio-plain.svg" alt="Logo Visual Studio en cara izquierda">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--top">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/vscode/vscode-original.svg" alt="Logo Visual Studio Code en cara superior">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--bottom">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/blender/blender-original.svg" alt="Logo Blender en cara inferior">
+                    </span>
+                </div>
+            </div>
+            <h2 id="splash-title" class="splash__title">VITALYX STUDIOS</h2>
+            <p id="splash-desc" class="splash__desc">Bienvenido a VITALYX STUDIOS. Presiona iniciar para descubrir nuestro ecosistema de desarrollo de videojuegos.</p>
+            <button id="splash-enter-btn" class="splash__enter-btn" autofocus>Iniciar</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-text">VITALYX STUDIOS</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="web-development.html">Servicios</a></li>
+                <li><a href="portfolio.html" class="active">Portfolio</a></li>
+                <li><a href="contact.html">Contacto</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="contact.html" class="btn btn-primary">Construir Proyecto</a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="web-development.html">Servicios</a></li>
+            <li><a href="portfolio.html">Portfolio</a></li>
+            <li><a href="contact.html">Contacto</a></li>
+        </ul>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="hero__floating-cards" aria-hidden="true">
+                <span class="hero__float-card card-1"></span>
+                <span class="hero__float-card card-2"></span>
+                <span class="hero__float-card card-3"></span>
+                <span class="hero__float-card card-4"></span>
+                <span class="hero__float-card card-5"></span>
+                <span class="hero__float-card card-6"></span>
+            </div>
+            <h1 class="animate-on-scroll">Nuestro Portfolio</h1>
+            <p class="animate-on-scroll">Explora los juegos que hemos creado en Roblox</p>
+        </div>
+    </section>
+
+    <!-- Portfolio Grid Moderno -->
+    <section class="portfolio-modern">
+        <div class="container">
+            <div class="portfolio-header-modern animate-on-scroll">
+                <h2 class="portfolio-title">Proyectos Destacados</h2>
+                <p class="portfolio-subtitle">Explora nuestros juegos más populares en Roblox</p>
+            </div>
+            <div class="portfolio-filters-modern animate-on-scroll">
+                <button class="filter-pill active" data-filter="all">Todos</button>
+                <button class="filter-pill" data-filter="tycoon">Tycoon</button>
+                <button class="filter-pill" data-filter="obby">Obby</button>
+                <button class="filter-pill" data-filter="horror">Horror</button>
+            </div>
+            <div class="portfolio-grid-modern">
+                <!-- Game 1 -->
+                <div class="project-card animate-on-scroll" data-delay="0" data-category="tycoon rpg">
+                    <div class="project-image">
+                        <div class="project-placeholder"><i class="fas fa-dragon"></i></div>
+                        <div class="project-overlay">
+                            <div class="project-stats">
+                                <span><i class="fas fa-play"></i> 2.5M+</span>
+                                <span><i class="fas fa-star"></i> 4.8★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-category">Tycoon • RPG</span>
+                        <h3 class="project-title">Dragon Tycoon</h3>
+                        <p class="project-desc">Construye tu imperio de dragones, recluta criaturas míticas y conquista el mundo.</p>
+                    </div>
+                </div>
+
+                <!-- Game 2 -->
+                <div class="project-card animate-on-scroll" data-delay="100" data-category="obby">
+                    <div class="project-image">
+                        <div class="project-placeholder"><i class="fas fa-running"></i></div>
+                        <div class="project-overlay">
+                            <div class="project-stats">
+                                <span><i class="fas fa-play"></i> 5M+</span>
+                                <span><i class="fas fa-star"></i> 4.9★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-category">Obby • Competitivo</span>
+                        <h3 class="project-title">Parkour Legends</h3>
+                        <p class="project-desc">El parkour definitivo con más de 100 niveles, saltos imposibles y competitivo global.</p>
+                    </div>
+                </div>
+
+                <!-- Game 3 -->
+                <div class="project-card animate-on-scroll" data-delay="200" data-category="horror">
+                    <div class="project-image">
+                        <div class="project-placeholder"><i class="fas fa-ghost"></i></div>
+                        <div class="project-overlay">
+                            <div class="project-stats">
+                                <span><i class="fas fa-play"></i> 1.8M+</span>
+                                <span><i class="fas fa-star"></i> 4.7★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-category">Horror • Survival</span>
+                        <h3 class="project-title">Horror Mansion</h3>
+                        <p class="project-desc">Explora una mansión embrujada, resuelve misterios y escapa antes de que sea demasiado tarde.</p>
+                    </div>
+                </div>
+
+                <!-- Game 5 -->
+                <div class="project-card animate-on-scroll" data-delay="400" data-category="tycoon">
+                    <div class="project-image">
+                        <div class="project-placeholder"><i class="fas fa-city"></i></div>
+                        <div class="project-overlay">
+                            <div class="project-stats">
+                                <span><i class="fas fa-play"></i> 1.2M+</span>
+                                <span><i class="fas fa-star"></i> 4.5★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-category">Tycoon</span>
+                        <h3 class="project-title">City Builder</h3>
+                        <p class="project-desc">Construye y administra tu propia ciudad con recursos limitados y desafíos únicos.</p>
+                    </div>
+                </div>
+
+
+                <!-- Game 7 -->
+                <div class="project-card animate-on-scroll" data-delay="600" data-category="tycoon">
+                    <div class="project-image">
+                        <div class="project-placeholder"><i class="fas fa-pizza-slice"></i></div>
+                        <div class="project-overlay">
+                            <div class="project-stats">
+                                <span><i class="fas fa-play"></i> 950K+</span>
+                                <span><i class="fas fa-star"></i> 4.7★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-category">Tycoon • Simulación</span>
+                        <h3 class="project-title">Pizza Empire</h3>
+                        <p class="project-desc">Construye tu imperio de pizzas, contrata empleados y sé el rey de la comida rápida.</p>
+                    </div>
+                </div>
+
+                <!-- Game 8 -->
+                <div class="project-card animate-on-scroll" data-delay="700" data-category="obby">
+                    <div class="project-image">
+                        <div class="project-placeholder"><i class="fas fa-cloud"></i></div>
+                        <div class="project-overlay">
+                            <div class="project-stats">
+                                <span><i class="fas fa-play"></i> 1.5M+</span>
+                                <span><i class="fas fa-star"></i> 4.6★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-category">Obby • Aventura</span>
+                        <h3 class="project-title">Sky Parkour</h3>
+                        <p class="project-desc">Parkour en las nubes con saltos entre islas flotantes y vistas espectaculares.</p>
+                    </div>
+                </div>
+
+
+                <!-- Game 10 -->
+                <div class="project-card animate-on-scroll" data-delay="900" data-category="tycoon fps">
+                    <div class="project-image">
+                        <div class="project-placeholder"><i class="fas fa-robot"></i></div>
+                        <div class="project-overlay">
+                            <div class="project-stats">
+                                <span><i class="fas fa-play"></i> 600K+</span>
+                                <span><i class="fas fa-star"></i> 4.4★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-category">Tycoon • Sci-Fi</span>
+                        <h3 class="project-title">Robot Factory</h3>
+                        <p class="project-desc">Construye robots, mejora tu fábrica y lucha en batallas de mechas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="animate-on-scroll">
+                <h2>¿Tienes una idea para un juego?</h2>
+                <p>Hablemos sobre tu proyecto y hagámoslo realidad en Roblox</p>
+                <a href="contact.html" class="btn btn-primary">Contactar Ahora</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-main">
+                    <div class="footer-brand">
+                        <a href="index.html" class="logo">
+                            <span class="logo-text">VITALYX STUDIOS</span>
+                        </a>
+                        <p>Estudio especializado en desarrollo de juegos para Roblox. Creamos experiencias que aman los jugadores.</p>
+                    </div>
+                    <div class="footer-links">
+                        <div class="footer-column">
+                            <h4>PÁGINAS</h4>
+                            <ul>
+                                <li><a href="index.html">Inicio</a></li>
+                                <li><a href="web-development.html">Servicios</a></li>
+                                <li><a href="portfolio.html">Portfolio</a></li>
+                                <li><a href="contact.html">Contacto</a></li>
+                            </ul>
+                        </div>
+                        <div class="footer-column">
+                            <h4>CONTACTO</h4>
+                            <ul>
+                                <li><a href="mailto:vitalyxstudios@gmail.com">vitalyxstudios@gmail.com</a></li>
+                                <li><a href="https://www.roblox.com/es/communities/667560354/Vitalyx-Studios#!/about" target="_blank" title="Roblox" style="display:inline-block;vertical-align:middle;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="22" height="22" fill="#cccccc" style="display:inline-block;vertical-align:middle;">
+                                        <rect x="7" y="7" width="36" height="36" rx="6" transform="rotate(15 25 25)"/>
+                                        <rect x="22" y="22" width="6" height="6" rx="1.5" fill="#191919"/>
+                                    </svg>
+                                    <span style="vertical-align:middle;margin-left:-1px;">Roblox</span>
+                                </a></li>
+                                <li><a href="https://discord.gg/P3aHXGMqn" target="_blank" title="Discord"><i class="fab fa-discord"></i> Discord</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 VITALYX STUDIOS. Todos los derechos reservados</p>
+                    <div class="footer-legal">
+                        <a href="privacy.html">Política de Privacidad</a>
+                        <a href="terms.html">Términos</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
