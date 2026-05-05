@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VITALYX STUDIOS - Desarrollo de Juegos en Roblox</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="bienvenida.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Splash Bienvenida -->
+    <div id="splash" class="splash" role="dialog" aria-modal="true" aria-labelledby="splash-title" aria-describedby="splash-desc">
+        <div class="splash__grid" aria-hidden="true"></div>
+        <div class="splash__inner">
+            <div class="splash__cube-wrap" aria-hidden="true">
+                <div class="splash__cube">
+                    <span class="splash__cube-face splash__cube-face--front">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/blender/blender-original.svg" alt="Logo Blender en cara frontal">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--back">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/roblox.svg" alt="Logo Roblox en cara trasera">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--right">
+                        <img class="splash__cube-logo splash__cube-logo--studio" src="https://cdn.simpleicons.org/robloxstudio" alt="Logo Roblox Studio en cara derecha">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--left">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/visualstudio/visualstudio-plain.svg" alt="Logo Visual Studio en cara izquierda">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--top">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/vscode/vscode-original.svg" alt="Logo Visual Studio Code en cara superior">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--bottom">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/blender/blender-original.svg" alt="Logo Blender en cara inferior">
+                    </span>
+                </div>
+            </div>
+            <h2 id="splash-title" class="splash__title">VITALYX STUDIOS</h2>
+            <p id="splash-desc" class="splash__desc">Bienvenido a VITALYX STUDIOS. Presiona iniciar para descubrir nuestro ecosistema de desarrollo de videojuegos.</p>
+            <button id="splash-enter-btn" class="splash__enter-btn" autofocus>Iniciar</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-text">VITALYX STUDIOS</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Inicio</a></li>
+                <li><a href="web-development.html">Servicios</a></li>
+                <li><a href="portfolio.html">Portfolio</a></li>
+                <li><a href="contact.html">Contacto</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="contact.html" class="btn btn-primary">Construir Proyecto</a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="web-development.html">Servicios</a></li>
+            <li><a href="portfolio.html">Portfolio</a></li>
+            <li><a href="contact.html">Contacto</a></li>
+        </ul>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg">
+            <div class="hero-gradient"></div>
+            <div class="hero-pattern"></div>
+            <div class="hero-particles" id="particles"></div>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-line">Creamos experiencias</span>
+                <span class="title-line">increíbles en</span>
+                <span class="title-line title-accent">ROBLOX</span>
+            </h1>
+            <p class="hero-subtitle">Estudio especializado en desarrollo de juegos para la plataforma Roblox. Transformamos tus ideas en experiencias que cautivan a millones de jugadores.</p>
+            <div class="hero-cta">
+                <a href="contact.html" class="btn btn-primary">Crear Mi Juego</a>
+                <a href="portfolio.html" class="btn btn-secondary">Ver Portfolio</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="100">0</span>
+                    <span class="stat-label">Juegos publicados</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="50">0</span>
+                    <span class="stat-label">Millones de visitas</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="5">0</span>
+                    <span class="stat-label">Años de experiencia</span>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Desplazar</span>
+            <div class="scroll-line"></div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">NUESTROS SERVICIOS</span>
+                <h2 class="section-title">Todo lo que necesitas para tu juego en Roblox</h2>
+            </div>
+            <div class="services-grid">
+                <!-- Game Development -->
+                <div class="service-card animate-on-scroll" data-delay="0">
+                    <div class="service-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <h3 class="service-title">Desarrollo de Juegos</h3>
+                    <p class="service-description">Creamos juegos completos en Roblox, desde la idea inicial hasta su publicación y monetización.</p>
+                    <ul class="service-features">
+                        <li><span>Juegos de Aventura</span></li>
+                        <li><span>Tycoons</span></li>
+                        <li><span>Obby</span></li>
+                        <li><span>Rol</span></li>
+                        
+                    </ul>
+                </div>
+
+                <!-- Scripting -->
+                <div class="service-card animate-on-scroll" data-delay="100">
+                    <div class="service-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3 class="service-title">Scripting Lua</h3>
+                    <p class="service-description">Programadores expertos en Lua y Roblox Studio crean sistemas complejos y optimizados.</p>
+                    <ul class="service-features">
+                        <li><span>Sistemas de Moneda</span></li>
+                        <li><span>Inventarios</span></li>
+                        <li><span>Datastores</span></li>
+                        <li><span>Multiplayer</span></li>
+                        <li><span>UI/UX</span></li>
+                    </ul>
+                </div>
+
+                <!-- 3D Design -->
+                <div class="service-card animate-on-scroll" data-delay="200">
+                    <div class="service-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <h3 class="service-title">Diseño 3D</h3>
+                    <p class="service-description">Diseñamos modelos 3D, mapas, personajes y assets personalizados para tu juego.</p>
+                    <ul class="service-features">
+                        <li><span>Modelos Personalizados</span></li>
+                        <li><span>Mapas y Terrenos</span></li>
+                        <li><span>Personajes</span></li>
+                        <li><span>Accesorios</span></li>
+                        <li><span>Animaciones</span></li>
+                    </ul>
+                </div>
+
+                <!-- Monetization -->
+                <div class="service-card animate-on-scroll" data-delay="300">
+                    <div class="service-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h3 class="service-title">Monetización</h3>
+                    <p class="service-description">Implementamos estrategias de monetización para maximizar tus ingresos en Roblox.</p>
+                    <ul class="service-features">
+                        <li><span>Game Passes</span></li>
+                        <li><span>Developer Products</span></li>
+                        <li><span>Premium Payouts</span></li>
+                        <li><span>Catálogo de Items</span></li>
+                        <li><span>Monedas del juego</span></li>
+                    </ul>
+                </div>
+
+                <!-- UI/UX Design -->
+                <div class="service-card animate-on-scroll" data-delay="400">
+                    <div class="service-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h3 class="service-title">Diseño UI/UX</h3>
+                    <p class="service-description">Creamos interfaces de usuario atractivas y funcionales para mejorar la experiencia del jugador.</p>
+                    <ul class="service-features">
+                        <li><span>Menús Principales</span></li>
+                        <li><span>Tiendas</span></li>
+                        <li><span>Inventarios</span></li>
+                        <li><span>HUDs</span></li>
+                        <li><span>Animaciones UI</span></li>
+                    </ul>
+                </div>
+
+                <!-- Marketing -->
+                <!-- Marketing eliminado -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Section -->
+    <section class="process" id="process">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">NUESTRO PROCESO</span>
+                <h2 class="section-title">Cómo creamos tu juego</h2>
+                <p class="section-description">Un proceso claro y transparente para desarrollar el juego perfecto en Roblox.</p>
+            </div>
+            <div class="process-steps">
+                <div class="process-step animate-on-scroll" data-delay="0">
+                    <div class="step-number">01</div>
+                    <h3 class="step-title">Consulta</h3>
+                    <p class="step-description">Conversamos sobre tu idea, objetivos y presupuesto para tu juego en Roblox.</p>
+                </div>
+                <div class="process-step animate-on-scroll" data-delay="100">
+                    <div class="step-number">02</div>
+                    <h3 class="step-title">Planificación</h3>
+                    <p class="step-description">Creamos un documento detallado con mecánicas, diseño y cronograma del proyecto.</p>
+                </div>
+                <div class="process-step animate-on-scroll" data-delay="200">
+                    <div class="step-number">03</div>
+                    <h3 class="step-title">Desarrollo</h3>
+                    <p class="step-description">Nuestro equipo construye tu juego con actualizaciones regulares y comunicación constante.</p>
+                </div>
+                <div class="process-step animate-on-scroll" data-delay="300">
+                    <div class="step-number">04</div>
+                    <h3 class="step-title">Envio</h3>
+                    <p class="step-description">Te entregamos tu juego de Roblox más una semana de garantía en bugs.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Us Section -->
+    <section class="why-us" id="why-us">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">POR QUÉ ELEGIRNOS</span>
+                <h2 class="section-title">Por qué somos tu mejor opción</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card animate-on-scroll" data-delay="0">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="feature-title">Expertos en Roblox</h3>
+                    <p class="feature-description">Nos especializamos 100% en Roblox, conocemos la plataforma y sus actualizaciones.</p>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="100">
+                    <div class="feature-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3 class="feature-title">Entrega Rápida</h3>
+                    <p class="feature-description">Cumplimos con los plazos acordados. Tu juego estará listo cuando lo necesites.</p>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="200">
+                    <div class="feature-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <h3 class="feature-title">Precios Justos</h3>
+                    <p class="feature-description">Tarifas transparentes y adaptadas a tu presupuesto. Sin costos ocultos.</p>
+                </div>
+                <div class="feature-card animate-on-scroll" data-delay="300">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3 class="feature-title">Soporte Continuo</h3>
+                    <p class="feature-description">Te acompañamos después del Envio y soporte técnico.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Transformation Section -->
+    <section class="transformation" id="transformation">
+        <div class="container">
+            <div class="transformation-grid">
+                <div class="transformation-card before animate-on-scroll">
+                    <div class="transformation-label">Antes</div>
+                    <h3 class="transformation-title">Solo una Idea</h3>
+                    <p class="transformation-description">Tienes una idea para un juego en Roblox pero no sabes cómo convertirla en realidad.</p>
+                </div>
+                <div class="transformation-arrow animate-on-scroll">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="transformation-card after animate-on-scroll">
+                    <div class="transformation-label">Después</div>
+                    <h3 class="transformation-title">Juego Publicado</h3>
+                    <p class="transformation-description">Un juego completo en Roblox, publicado y listo para recibir a miles de jugadores.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Preview -->
+    <section class="portfolio-preview" id="portfolio-preview">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">NUESTROS JUEGOS</span>
+                <h2 class="section-title">Juegos que hemos creado</h2>
+            </div>
+            <div class="portfolio-grid-modern">
+                <a href="portfolio.html" class="project-card animate-on-scroll" data-delay="0">
+                    <div class="project-image">
+                        <div class="project-placeholder"><i class="fas fa-running"></i></div>
+                        <div class="project-overlay">
+                            <div class="project-stats">
+                                <span><i class="fas fa-play"></i> 5M+</span>
+                                <span><i class="fas fa-star"></i> 4.9★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-category">Obby • Competitivo</span>
+                        <h3 class="project-title">Parkour Legends</h3>
+                        <p class="project-desc">El parkour definitivo con más de 100 niveles, saltos imposibles y competitivo global.</p>
+                    </div>
+                </a>
+                <a href="portfolio.html" class="project-card animate-on-scroll" data-delay="100">
+                    <div class="project-image">
+                        <div class="project-placeholder"><i class="fas fa-ghost"></i></div>
+                        <div class="project-overlay">
+                            <div class="project-stats">
+                                <span><i class="fas fa-play"></i> 1.8M+</span>
+                                <span><i class="fas fa-star"></i> 4.7★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-category">Horror • Survival</span>
+                        <h3 class="project-title">Horror Mansion</h3>
+                        <p class="project-desc">Explora una mansión embrujada, resuelve misterios y escapa antes de que sea demasiado tarde.</p>
+                    </div>
+                </a>
+                <a href="portfolio.html" class="project-card animate-on-scroll" data-delay="200">
+                    <div class="project-image">
+                        <div class="project-placeholder"><i class="fas fa-city"></i></div>
+                        <div class="project-overlay">
+                            <div class="project-stats">
+                                <span><i class="fas fa-play"></i> 1.2M+</span>
+                                <span><i class="fas fa-star"></i> 4.5★</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-category">Tycoon</span>
+                        <h3 class="project-title">City Builder</h3>
+                        <p class="project-desc">Construye y administra tu propia ciudad con recursos limitados y desafíos únicos.</p>
+                    </div>
+                </a>
+            </div>
+            <div class="portfolio-cta animate-on-scroll">
+                <a href="portfolio.html" class="btn btn-primary">Ver Todos los Juegos</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Expertise Section -->
+    <section class="expertise" id="expertise">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">PLATAFORMAS</span>
+                <h2 class="section-title">Trabajamos en Roblox</h2>
+            </div>
+            <div class="expertise-content">
+                <div class="expertise-list animate-on-scroll">
+                    <h3>Lo que creamos</h3>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Juegos de Tycoon</li>
+                        <li><i class="fas fa-check"></i> Courses y Obby</li>
+                        <li><i class="fas fa-check"></i> Juegos de Horror</li>
+                        <li><i class="fas fa-check"></i> Simulator Games</li>
+                        <li><i class="fas fa-check"></i> Juegos de Ciudad</li>
+                    </ul>
+                </div>
+                <div class="expertise-image animate-on-scroll">
+                    <div class="expertise-placeholder">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-cta" id="contact-cta">
+        <div class="container">
+            <div class="contact-cta-content animate-on-scroll">
+                <h2>¿Listo para crear tu juego?</h2>
+                <p>Cuéntanos sobre tu idea y la convertiremos en realidad</p>
+                <form class="contact-form" id="homeContactForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" name="name" placeholder="Tu nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="email" placeholder="Tu email" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="message" placeholder="Cuéntanos sobre tu idea de juego en Roblox..." rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <select name="budget">
+                            <option value="">Presupuesto estimado</option>
+                            <option value="100-500">$100 - $500 USD</option>
+                            <option value="500-1000">$500 - $1,000 USD</option>
+                            <option value="1000-5000">$1,000 - $5,000 USD</option>
+                            <option value="other">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group custom-budget-group">
+                        <input type="number" name="custom_budget" class="custom-budget" placeholder="Ej. 1200" min="0" step="1">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enviar Propuesta</button>
+                    <p class="form-note">* Al enviar aceptas nuestra <a href="privacy.html">Política de Privacidad</a>.</p>
+                </form>
+                <div class="contact-alternative">
+                    <span>O</span>
+                    <a href="https://www.roblox.com/games/" target="_blank" class="btn btn-secondary">Ver Juegos en Roblox</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-main">
+                    <div class="footer-brand">
+                        <a href="index.html" class="logo">
+                            <span class="logo-text">VITALYX STUDIOS</span>
+                        </a>
+                        <p>Estudio especializado en desarrollo de juegos para Roblox. Creamos experiencias que aman los jugadores.</p>
+                    </div>
+                    <div class="footer-links">
+                        <div class="footer-column">
+                            <h4>Páginas</h4>
+                            <ul>
+                                <li><a href="index.html">Inicio</a></li>
+                                <li><a href="web-development.html">Servicios</a></li>
+                                <li><a href="portfolio.html">Portfolio</a></li>
+                                <li><a href="contact.html">Contacto</a></li>
+                            </ul>
+                        </div>
+                        <div class="footer-column">
+                            <h4>Contacto</h4>
+                            <ul>
+                                <li><a href="mailto:vitalyxstudios@gmail.com">vitalyxstudios@gmail.com</a></li>
+                                <li><a href="https://www.roblox.com/es/communities/667560354/Vitalyx-Studios#!/about" target="_blank" title="Roblox" style="display:inline-block;vertical-align:middle;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="22" height="22" fill="#cccccc" style="display:inline-block;vertical-align:middle;">
+                                        <rect x="7" y="7" width="36" height="36" rx="6" transform="rotate(15 25 25)"/>
+                                        <rect x="22" y="22" width="6" height="6" rx="1.5" fill="#191919"/>
+                                    </svg>
+                                    <span style="vertical-align:middle;margin-left:-1px;">Roblox</span>
+                                </a></li>
+                                <li><a href="https://discord.gg/P3aHXGMqn" target="_blank" title="Discord"><i class="fab fa-discord"></i> Discord</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 VITALYX STUDIOS. Todos los derechos reservados</p>
+                    <div class="footer-legal">
+                        <a href="privacy.html">Política de Privacidad</a>
+                        <a href="terms.html">Términos</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
