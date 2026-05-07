@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios - VITALYX STUDIOS Roblox</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="bienvenida.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Splash Bienvenida -->
+    <div id="splash" class="splash" role="dialog" aria-modal="true" aria-labelledby="splash-title" aria-describedby="splash-desc">
+        <div class="splash__grid" aria-hidden="true"></div>
+        <div class="splash__inner">
+            <div class="splash__cube-wrap" aria-hidden="true">
+                <div class="splash__cube">
+                    <span class="splash__cube-face splash__cube-face--front">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/blender/blender-original.svg" alt="Logo Blender en cara frontal">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--back">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/roblox.svg" alt="Logo Roblox en cara trasera">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--right">
+                        <img class="splash__cube-logo splash__cube-logo--studio" src="https://cdn.simpleicons.org/robloxstudio" alt="Logo Roblox Studio en cara derecha">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--left">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/visualstudio/visualstudio-plain.svg" alt="Logo Visual Studio en cara izquierda">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--top">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/vscode/vscode-original.svg" alt="Logo Visual Studio Code en cara superior">
+                    </span>
+                    <span class="splash__cube-face splash__cube-face--bottom">
+                        <img class="splash__cube-logo" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/blender/blender-original.svg" alt="Logo Blender en cara inferior">
+                    </span>
+                </div>
+            </div>
+            <h2 id="splash-title" class="splash__title">VITALYX STUDIOS</h2>
+            <p id="splash-desc" class="splash__desc">Bienvenido a VITALYX STUDIOS. Presiona iniciar para descubrir nuestro ecosistema de desarrollo de videojuegos.</p>
+            <button id="splash-enter-btn" class="splash__enter-btn" autofocus>Iniciar</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <span class="logo-text">VITALYX STUDIOS</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Inicio</a></li>
+                <li><a href="/web-development" class="active">Servicios</a></li>
+                <li><a href="/portfolio">Portfolio</a></li>
+                <li><a href="/contact">Contacto</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="/contact" class="btn btn-primary">Construir Proyecto</a>
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-links">
+            <li><a href="/">Inicio</a></li>
+            <li><a href="/web-development">Servicios</a></li>
+            <li><a href="/portfolio">Portfolio</a></li>
+            <li><a href="/contact">Contacto</a></li>
+        </ul>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="hero__floating-cards" aria-hidden="true">
+                <span class="hero__float-card card-1"></span>
+                <span class="hero__float-card card-2"></span>
+                <span class="hero__float-card card-3"></span>
+                <span class="hero__float-card card-4"></span>
+                <span class="hero__float-card card-5"></span>
+                <span class="hero__float-card card-6"></span>
+            </div>
+            <h1 class="animate-on-scroll">Nuestros Servicios</h1>
+            <p class="animate-on-scroll">Servicios completos para tu juego en Roblox</p>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services-modern">
+        <div class="container">
+            <h2 class="section-title">Nuestros Servicios</h2>
+            <p class="section-subtitle">Soluciones completas para tus proyectos en Roblox</p>
+
+            <div class="services-grid">
+                <!-- Service Card 1 -->
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <h3>Desarrollo de Juegos</h3>
+                    <p>Creamos experiencias únicas en Roblox Studio, desde Tycoons hasta juegos de simulación.</p>
+                </div>
+
+                <!-- Service Card 2 -->
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Scripting en Lua</h3>
+                    <p>Desarrollamos sistemas robustos y optimizados, como inventarios y sistemas de guardado.</p>
+                </div>
+
+                <!-- Service Card 3 -->
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <h3>Diseño 3D</h3>
+                    <p>Modelos personalizados, mapas y animaciones para destacar tu juego.</p>
+                </div>
+
+                <!-- Service Card 4 -->
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h3>Monetización</h3>
+                    <p>Implementamos estrategias para maximizar tus ingresos, como Game Passes y Developer Products.</p>
+                </div>
+
+                <!-- Service Card 5 -->
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h3>Diseño UI/UX</h3>
+                    <p>Interfaces atractivas y funcionales que mejoran la experiencia del jugador.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="tech-stack">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">HERRAMIENTAS</span>
+                <h2 class="section-title">Lo que usamos</h2>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-item animate-on-scroll" data-delay="0">
+                    <img class="tech-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/roblox.svg" alt="Roblox Studio logo">
+                    <span>Roblox Studio</span>
+                </div>
+                <div class="tech-item animate-on-scroll" data-delay="100">
+                    <img class="tech-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/lua.svg" alt="Lua logo">
+                    <span>Lua</span>
+                </div>
+                <div class="tech-item animate-on-scroll" data-delay="200">
+                    <img class="tech-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/blender.svg" alt="Blender logo">
+                    <span>Blender</span>
+                </div>
+                <div class="tech-item animate-on-scroll" data-delay="300">
+                    <img class="tech-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/adobephotoshop.svg" alt="Photoshop logo">
+                    <span>Photoshop</span>
+                </div>
+                <div class="tech-item animate-on-scroll" data-delay="400">
+                    <img class="tech-icon" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/adobeillustrator.svg" alt="Illustrator logo">
+                    <span>Illustrator</span>
+                </div>
+                <div class="tech-item animate-on-scroll" data-delay="500">
+                    <i class="fas fa-database"></i>
+                    <span>DataStore</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="animate-on-scroll">
+                <h2>¿Listo para crear tu juego?</h2>
+                <p>Cuéntanos sobre tu proyecto y hagámoslo realidad</p>
+                <a href="/contact" class="btn btn-primary">Contactar Ahora</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-main">
+                    <div class="footer-brand">
+                        <a href="index.html" class="logo">
+                            <span class="logo-text">VITALYX STUDIOS</span>
+                        </a>
+                        <p>Estudio especializado en desarrollo de juegos para Roblox. Creamos experiencias que aman los jugadores.</p>
+                    </div>
+                    <div class="footer-links">
+                        <div class="footer-column">
+                            <h4>PÁGINAS</h4>
+                            <ul>
+                                <li><a href="index.html">Inicio</a></li>
+                                <li><a href="web-development.html">Servicios</a></li>
+                                <li><a href="portfolio.html">Portfolio</a></li>
+                                <li><a href="contact.html">Contacto</a></li>
+                            </ul>
+                        </div>
+                        <div class="footer-column">
+                            <h4>CONTACTO</h4>
+                            <ul>
+                                <li><a href="mailto:vitalyxstudios@gmail.com">vitalyxstudios@gmail.com</a></li>
+                                <li><a href="https://www.roblox.com/es/communities/667560354/Vitalyx-Studios#!/about" target="_blank" title="Roblox" style="display:inline-block;vertical-align:middle;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="22" height="22" fill="#cccccc" style="display:inline-block;vertical-align:middle;">
+                                        <rect x="7" y="7" width="36" height="36" rx="6" transform="rotate(15 25 25)"/>
+                                        <rect x="22" y="22" width="6" height="6" rx="1.5" fill="#191919"/>
+                                    </svg>
+                                    <span style="vertical-align:middle;margin-left:-1px;">Roblox</span>
+                                </a></li>
+                                <li><a href="https://discord.gg/P3aHXGMqn" target="_blank" title="Discord"><i class="fab fa-discord"></i> Discord</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 VITALYX STUDIOS. Todos los derechos reservados</p>
+                    <div class="footer-legal">
+                        <a href="/privacy">Política de Privacidad</a>
+                        <a href="/terms">Términos</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
