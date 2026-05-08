@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initSplashWelcome();
     initSecretLoginSequence();
     initAdminEditor();
+    initSavedContentLoader(); // Nueva función para cargar contenido guardado
     
     // Load custom portfolio games if on portfolio page
     if (window.location.pathname.includes('portfolio.html')) {
@@ -747,9 +748,98 @@ function initSplashWelcome() {
   });
 }
 
-/* ========================================
-   SECRET LOGIN SEQUENCE
-   ======================================== */
+function initSavedContentLoader() {
+    // Cargar contenido guardado inmediatamente
+    loadAndApplySavedContent();
+}
+
+async function loadAndApplySavedContent() {
+    try {
+        // Cargar datos del servidor
+        const response = await fetch('/api/portfolio');
+        if (!response.ok) {
+            console.warn('No se pudieron cargar datos del servidor');
+            return;
+        }
+
+        const data = await response.json();
+
+        // Aplicar cambios de contenido editado
+        if (data.contentBackup) {
+            Object.entries(data.contentBackup).forEach(([elementId, content]) => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = content;
+                }
+            });
+        }
+
+        // Si estamos en portfolio, aplicar cambios del portfolio
+        if (window.location.pathname.includes('portfolio.html') || document.querySelector('.portfolio-grid-modern')) {
+            await applyPortfolioChangesFromServer(data);
+        }
+
+    } catch (error) {
+        console.warn('Error cargando contenido guardado:', error);
+        // Fallback a localStorage
+        loadSavedContentFromLocalStorage();
+    }
+}
+
+async function applyPortfolioChangesFromServer(data) {
+    const portfolioGrid = document.querySelector('.portfolio-grid-modern');
+    if (!portfolioGrid) return;
+
+    const games = data.portfolioGames || [];
+    const deletedDefaultGames = data.deletedDefaultGames || [];
+    const editedDefaultGames = data.editedDefaultGames || {};
+
+    // Get existing default games
+    const defaultCards = Array.from(portfolioGrid.querySelectorAll('.project-card')).filter(card =>
+        card.querySelector('.project-placeholder') && card.dataset.customIndex === undefined
+    );
+
+    // Clear all cards first
+    portfolioGrid.innerHTML = '';
+
+    // Add default games back, skipping deleted ones, using edited if available
+    defaultCards.forEach((card, index) => {
+        if (!deletedDefaultGames.includes(index)) {
+            if (editedDefaultGames[index]) {
+                // Use edited version
+                const gameCard = createGameCard(editedDefaultGames[index], index, { defaultIndex: index });
+                portfolioGrid.appendChild(gameCard);
+            } else {
+                // Use original
+                card.dataset.defaultIndex = index;
+                card.dataset.gameId = `default-${index}`;
+                portfolioGrid.appendChild(card);
+            }
+        }
+    });
+
+    // Add custom games
+    games.forEach((game, index) => {
+        const gameCard = createGameCard(game, index, { customIndex: index });
+        portfolioGrid.appendChild(gameCard);
+    });
+
+    // Re-add admin controls only for admins
+    if (isAdminUser()) {
+        addPortfolioAdminControls();
+    }
+}
+
+function loadSavedContentFromLocalStorage() {
+    // Fallback function for localStorage
+    const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+    Object.keys(contentBackup).forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = contentBackup[elementId];
+        }
+    });
+}
 function initSecretLoginSequence() {
     // Only initialize on index.html
     if (!window.location.pathname.includes('index.html') && window.location.pathname !== '/') return;
@@ -1045,13 +1135,17 @@ async function saveContentChange(element, newText) {
     const elementId = element.id || generateElementId(element);
     element.id = elementId;
 
+    // Always save to localStorage first (immediate feedback)
+    saveContentChangeLocal(elementId, newText);
+
+    // Also try to save to server
     if (useServerApi()) {
-        await saveContentChangeServer(elementId, newText).catch(error => {
-            console.warn('Server save failed, falling back to localStorage', error);
-            saveContentChangeLocal(elementId, newText);
-        });
-    } else {
-        saveContentChangeLocal(elementId, newText);
+        try {
+            await saveContentChangeServer(elementId, newText);
+            console.log('Content saved to server successfully');
+        } catch (error) {
+            console.warn('Server save failed, content saved locally only', error);
+        }
     }
 }
 
@@ -1076,16 +1170,16 @@ async function saveContentChangeServer(elementId, newText) {
 
 async function saveAllChanges() {
     try {
-        showStatus('Guardando cambios...', 'info');
-        
-        // Get all data
+        showStatus('Sincronizando con servidor...', 'info');
+
+        // Get all data from localStorage
         const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
         const portfolioGames = JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]');
         const editedDefaultGames = JSON.parse(localStorage.getItem('vitalyx_edited_default_games') || '{}');
         const deletedDefaultGames = JSON.parse(localStorage.getItem('vitalyx_deleted_default_games') || '[]');
-        
+
         if (useServerApi()) {
-            // Save all content backups to server
+            // Sync all content backups to server
             for (const [elementId, content] of Object.entries(contentBackup)) {
                 try {
                     await fetch('/api/content', {
@@ -1094,11 +1188,11 @@ async function saveAllChanges() {
                         body: JSON.stringify({ id: elementId, content })
                     });
                 } catch (err) {
-                    console.error('Error saving content:', err);
+                    console.error('Error syncing content:', elementId, err);
                 }
             }
-            
-            // Save all portfolio games to server
+
+            // Sync all portfolio games to server
             for (let i = 0; i < portfolioGames.length; i++) {
                 try {
                     await fetch(`/api/portfolio/custom/${i}`, {
@@ -1107,11 +1201,11 @@ async function saveAllChanges() {
                         body: JSON.stringify(portfolioGames[i])
                     });
                 } catch (err) {
-                    console.error('Error saving game:', err);
+                    console.error('Error syncing game:', i, err);
                 }
             }
-            
-            // Save edited default games
+
+            // Sync edited default games
             for (const [index, gameData] of Object.entries(editedDefaultGames)) {
                 try {
                     await fetch(`/api/portfolio/default/${index}`, {
@@ -1120,11 +1214,11 @@ async function saveAllChanges() {
                         body: JSON.stringify(gameData)
                     });
                 } catch (err) {
-                    console.error('Error saving default game:', err);
+                    console.error('Error syncing default game:', index, err);
                 }
             }
-            
-            // Save deleted default games
+
+            // Sync deleted default games
             for (const index of deletedDefaultGames) {
                 try {
                     await fetch(`/api/portfolio/default/${index}`, {
@@ -1132,15 +1226,15 @@ async function saveAllChanges() {
                         headers: { 'Content-Type': 'application/json' }
                     });
                 } catch (err) {
-                    console.error('Error deleting default game:', err);
+                    console.error('Error syncing deleted game:', index, err);
                 }
             }
         }
-        
-        showStatus('✓ Todos los cambios guardados correctamente', 'success');
+
+        showStatus('✓ Todos los cambios sincronizados', 'success');
     } catch (error) {
-        console.error('Error saving all changes:', error);
-        showStatus('✗ Error al guardar cambios', 'error');
+        console.error('Error syncing all changes:', error);
+        showStatus('✗ Error al sincronizar cambios', 'error');
     }
 }
 
@@ -1276,18 +1370,17 @@ async function deleteDefaultGame(index) {
                 deletedGames.push(index);
                 localStorage.setItem('vitalyx_deleted_default_games', JSON.stringify(deletedGames));
             }
-            
+
             // Try to delete from server
             if (useServerApi()) {
                 try {
                     await deleteDefaultGameServer(index);
-                    return; // Success, deleteDefaultGameServer handles the reload
                 } catch (err) {
-                    console.warn('Server delete failed, using localStorage', err);
+                    console.warn('Server delete failed, deleted locally only', err);
                 }
             }
-            
-            // Fallback: reload portfolio from localStorage
+
+            // Reload portfolio
             await loadPortfolioGames();
             showStatus('Juego eliminado', 'success');
         } catch (error) {
@@ -1302,11 +1395,6 @@ function useServerApi() {
 }
 
 async function getPortfolioState() {
-    // Primero revisar si hay datos inyectados por el servidor
-    if (window.serverPortfolioData) {
-        return window.serverPortfolioData;
-    }
-
     if (useServerApi()) {
         try {
             const response = await fetch('/api/portfolio');
@@ -1369,8 +1457,8 @@ async function deleteGameServer(index) {
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
         }
-        await loadPortfolioGames();
-        showStatus('Juego eliminado', 'success');
+        // Client handles reload and status
+        return true;
     } catch (error) {
         console.error('Error deleting game from server:', error);
         throw error;
@@ -1383,8 +1471,8 @@ async function deleteDefaultGameServer(index) {
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
         }
-        await loadPortfolioGames();
-        showStatus('Juego eliminado', 'success');
+        // Client handles reload and status
+        return true;
     } catch (error) {
         console.error('Error deleting default game from server:', error);
         throw error;
@@ -1542,41 +1630,34 @@ async function saveGame(form, editIndex, editType) {
 }
 
 async function saveGameToStorage(gameData, editIndex, editType) {
-    let success = false;
-    
-    // Always save to localStorage as backup
-    try {
-        if (editType === 'edit-default') {
-            let editedDefaults = JSON.parse(localStorage.getItem('vitalyx_edited_default_games') || '{}');
-            editedDefaults[editIndex] = gameData;
-            localStorage.setItem('vitalyx_edited_default_games', JSON.stringify(editedDefaults));
+    // Always save to localStorage first
+    if (editType === 'edit-default') {
+        let editedDefaults = JSON.parse(localStorage.getItem('vitalyx_edited_default_games') || '{}');
+        editedDefaults[editIndex] = gameData;
+        localStorage.setItem('vitalyx_edited_default_games', JSON.stringify(editedDefaults));
+    } else {
+        let games = JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]');
+
+        if (editIndex !== null) {
+            games[editIndex] = gameData;
         } else {
-            let games = JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]');
-            
-            if (editIndex !== null) {
-                games[editIndex] = gameData;
-            } else {
-                games.push(gameData);
-            }
-            
-            localStorage.setItem('vitalyx_portfolio_games', JSON.stringify(games));
+            games.push(gameData);
         }
-        success = true;
-    } catch (err) {
-        console.error('Error saving to localStorage:', err);
+
+        localStorage.setItem('vitalyx_portfolio_games', JSON.stringify(games));
     }
-    
-    // Also try to save to server if available
+
+    // Also try to save to server
     if (useServerApi()) {
         try {
             await saveGameToServer(gameData, editIndex, editType);
+            console.log('Game saved to server successfully');
         } catch (err) {
-            console.warn('Server save failed, data saved to localStorage as backup', err);
-            success = true; // Still consider it success since localStorage worked
+            console.warn('Server save failed, game saved locally only', err);
         }
     }
-    
-    return success;
+
+    return true;
 }
 
 function editGame(index) {
@@ -1641,16 +1722,16 @@ async function deleteGame(index) {
             if (useServerApi()) {
                 try {
                     await deleteGameServer(index);
-                    return; // Success, deleteGameServer handles the reload
                 } catch (err) {
-                    console.warn('Server delete failed, using localStorage', err);
+                    console.warn('Server delete failed, deleting locally only', err);
                 }
             }
-            
-            // Fallback: delete from localStorage
+
+            // Always delete from localStorage
             let games = JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]');
             games.splice(index, 1);
             localStorage.setItem('vitalyx_portfolio_games', JSON.stringify(games));
+
             await loadPortfolioGames();
             showStatus('Juego eliminado', 'success');
         } catch (error) {
