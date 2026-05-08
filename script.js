@@ -1191,16 +1191,26 @@ function saveContentChangeLocal(elementId, newText) {
 
 function getApiBaseUrl() {
     // Detectar automáticamente la ruta base
-    // En desarrollo local: ''
-    // En Render: podría ser algo como '/app' o la ruta del sitio
-    const path = window.location.pathname;
-    const pathParts = path.split('/').filter(p => p);
+    const hostname = window.location.hostname;
+    const pathname = window.location.pathname;
 
-    // Si estamos en una página específica (como index.html), la ruta base es '/'
-    // Si estamos en una subruta, necesitamos ajustar
-    if (pathParts.length > 0 && !pathParts[0].includes('.html')) {
-        // Estamos en una subruta, usar ruta relativa
+    // Si estamos en localhost, usar rutas relativas
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
         return '';
+    }
+
+    // En producción (Render), detectar si estamos en una subruta
+    // Render a veces sirve desde rutas como /app o el nombre del proyecto
+    const pathParts = pathname.split('/').filter(p => p);
+
+    // Si hay partes en el path y no es una página HTML directa,
+    // probablemente estamos en una subruta
+    if (pathParts.length > 0 && !pathname.includes('.html')) {
+        // Construir la ruta base: desde el inicio hasta la carpeta del proyecto
+        // Por ejemplo, si pathname es '/app/index.html', la ruta base sería '/app'
+        const basePath = '/' + pathParts[0];
+        console.log('Detected base path:', basePath);
+        return basePath;
     }
 
     return '';
