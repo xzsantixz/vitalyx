@@ -116,7 +116,9 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === '/api/portfolio' && req.method === 'GET') {
+    console.log('GET /api/portfolio request received');
     const data = readData();
+    console.log('Sending portfolio data:', Object.keys(data));
     sendJson(res, 200, data);
     return;
   }
@@ -138,12 +140,15 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === '/api/content' && req.method === 'PUT') {
+    console.log('PUT /api/content request received');
     try {
       const payload = await parseRequestBody(req);
+      console.log('Payload received:', payload);
       const data = readData();
       const { id, content } = payload;
 
       if (!id || typeof content !== 'string') {
+        console.log('Invalid payload - missing id or content');
         sendJson(res, 400, { error: 'Faltan datos: id o content' });
         return;
       }
@@ -151,8 +156,10 @@ const server = http.createServer(async (req, res) => {
       data.contentBackup = data.contentBackup || {};
       data.contentBackup[id] = content;
       writeData(data);
+      console.log('Content saved successfully:', id);
       sendJson(res, 200, { message: 'Contenido guardado' });
     } catch (err) {
+      console.error('Error in PUT /api/content:', err);
       sendJson(res, 400, { error: 'JSON inválido' });
     }
     return;

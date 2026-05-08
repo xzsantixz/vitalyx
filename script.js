@@ -756,7 +756,8 @@ function initSavedContentLoader() {
 async function loadAndApplySavedContent() {
     try {
         // Cargar datos del servidor
-        const response = await fetch('/api/portfolio');
+        const baseUrl = getApiBaseUrl();
+        const response = await fetch(`${baseUrl}/api/portfolio`);
         if (!response.ok) {
             console.warn('No se pudieron cargar datos del servidor');
             return;
@@ -1135,17 +1136,22 @@ async function saveContentChange(element, newText) {
     const elementId = element.id || generateElementId(element);
     element.id = elementId;
 
+    console.log('Saving content change:', elementId, newText.substring(0, 50) + '...');
+
     // Always save to localStorage first (immediate feedback)
     saveContentChangeLocal(elementId, newText);
 
     // Also try to save to server
     if (useServerApi()) {
+        console.log('Attempting to save to server...');
         try {
             await saveContentChangeServer(elementId, newText);
             console.log('Content saved to server successfully');
         } catch (error) {
             console.warn('Server save failed, content saved locally only', error);
         }
+    } else {
+        console.log('Server API not available, saving locally only');
     }
 }
 
@@ -1155,17 +1161,45 @@ function saveContentChangeLocal(elementId, newText) {
     localStorage.setItem('vitalyx_content_backup', JSON.stringify(contentBackup));
 }
 
+function getApiBaseUrl() {
+    // Detectar automáticamente la ruta base
+    // En desarrollo local: ''
+    // En Render: podría ser algo como '/app' o la ruta del sitio
+    const path = window.location.pathname;
+    const pathParts = path.split('/').filter(p => p);
+
+    // Si estamos en una página específica (como index.html), la ruta base es '/'
+    // Si estamos en una subruta, necesitamos ajustar
+    if (pathParts.length > 0 && !pathParts[0].includes('.html')) {
+        // Estamos en una subruta, usar ruta relativa
+        return '';
+    }
+
+    return '';
+}
+
 async function saveContentChangeServer(elementId, newText) {
     const headers = { 'Content-Type': 'application/json' };
-    const response = await fetch('/api/content', {
+    const baseUrl = getApiBaseUrl();
+    const url = `${baseUrl}/api/content`;
+    console.log('Making request to:', url);
+
+    const response = await fetch(url, {
         method: 'PUT',
         headers,
         body: JSON.stringify({ id: elementId, content: newText })
     });
 
+    console.log('Response status:', response.status);
+
     if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
         throw new Error('Failed to save content to server');
     }
+
+    const result = await response.json();
+    console.log('Server response:', result);
 }
 
 async function saveAllChanges() {
@@ -1182,7 +1216,8 @@ async function saveAllChanges() {
             // Sync all content backups to server
             for (const [elementId, content] of Object.entries(contentBackup)) {
                 try {
-                    await fetch('/api/content', {
+                    const baseUrl = getApiBaseUrl();
+                    await fetch(`${baseUrl}/api/content`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id: elementId, content })
@@ -1195,7 +1230,8 @@ async function saveAllChanges() {
             // Sync all portfolio games to server
             for (let i = 0; i < portfolioGames.length; i++) {
                 try {
-                    await fetch(`/api/portfolio/custom/${i}`, {
+                    const baseUrl = getApiBaseUrl();
+                    await fetch(`${baseUrl}/api/portfolio/custom/${i}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(portfolioGames[i])
@@ -1208,7 +1244,8 @@ async function saveAllChanges() {
             // Sync edited default games
             for (const [index, gameData] of Object.entries(editedDefaultGames)) {
                 try {
-                    await fetch(`/api/portfolio/default/${index}`, {
+                    const baseUrl = getApiBaseUrl();
+                    await fetch(`${baseUrl}/api/portfolio/default/${index}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(gameData)
@@ -1221,11 +1258,8 @@ async function saveAllChanges() {
             // Sync deleted default games
             for (const index of deletedDefaultGames) {
                 try {
-                    await fetch(`/api/portfolio/default/${index}`, {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                } catch (err) {
+                    const baseUrl = getApiBaseUrl();
+                    await fetch(`${baseUrl}/api/portfolio/default/${index}`, {
                     console.error('Error syncing deleted game:', index, err);
                 }
             }
@@ -1397,7 +1431,8 @@ function useServerApi() {
 async function getPortfolioState() {
     if (useServerApi()) {
         try {
-            const response = await fetch('/api/portfolio');
+            const baseUrl = getApiBaseUrl();
+            const response = await fetch(`${baseUrl}/api/portfolio`);
             if (response.ok) {
                 return await response.json();
             }
@@ -1416,24 +1451,25 @@ async function getPortfolioState() {
 
 async function saveGameToServer(gameData, editIndex, editType) {
     const headers = { 'Content-Type': 'application/json' };
+    const baseUrl = getApiBaseUrl();
     
     try {
         let response;
         
         if (editType === 'edit-default') {
-            response = await fetch(`/api/portfolio/default/${editIndex}`, {
+            response = await fetch(`${baseUrl}/api/portfolio/default/${editIndex}`, {
                 method: 'PUT',
                 headers,
                 body: JSON.stringify(gameData)
             });
         } else if (editIndex !== null) {
-            response = await fetch(`/api/portfolio/custom/${editIndex}`, {
+            response = await fetch(`${baseUrl}/api/portfolio/custom/${editIndex}`, {
                 method: 'PUT',
                 headers,
                 body: JSON.stringify(gameData)
             });
         } else {
-            response = await fetch('/api/portfolio/custom', {
+            response = await fetch(`${baseUrl}/api/portfolio/custom`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(gameData)
@@ -1453,7 +1489,8 @@ async function saveGameToServer(gameData, editIndex, editType) {
 
 async function deleteGameServer(index) {
     try {
-        const response = await fetch(`/api/portfolio/custom/${index}`, { method: 'DELETE' });
+        const baseUrl = getApiBaseUrl();
+        const response = await fetch(`${baseUrl}/api/portfolio/custom/${index}`, { method: 'DELETE' });
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
         }
@@ -1467,7 +1504,8 @@ async function deleteGameServer(index) {
 
 async function deleteDefaultGameServer(index) {
     try {
-        const response = await fetch(`/api/portfolio/default/${index}`, { method: 'DELETE' });
+        const baseUrl = getApiBaseUrl();
+        const response = await fetch(`${baseUrl}/api/portfolio/default/${index}`, { method: 'DELETE' });
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
         }
