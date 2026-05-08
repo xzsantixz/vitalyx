@@ -1069,37 +1069,37 @@ function makeElementsEditable() {
         '.contact-subtitle'
     ];
     
+    console.log('Making elements editable and assigning IDs...');
+    let elementCounter = 0;
+    
     editableSelectors.forEach(selector => {
         const elements = document.querySelectorAll(selector);
-        elements.forEach(element => {
+        elements.forEach((element, index) => {
             if (!element.closest('#admin-panel') && !element.closest('.login-section')) {
+                // Generate consistent ID based on page structure
+                let elementId = element.getAttribute('data-edit-id');
+                if (!elementId) {
+                    // Use a combination of selector and index to make it consistent
+                    const cleanSelector = selector.replace(/[^a-z0-9]/gi, '_');
+                    elementId = 'edit_' + cleanSelector + '_' + index;
+                    element.setAttribute('data-edit-id', elementId);
+                    console.log('Assigned data-edit-id:', elementId, 'to', element.tagName, element.className.substring(0, 30));
+                }
                 makeEditable(element);
+                elementCounter++;
             }
         });
     });
+    
+    console.log('Total elements made editable:', elementCounter);
 }
 
 function makeEditable(element) {
     element.classList.add('editable-element');
     element.setAttribute('contenteditable', 'false');
     
-    // Create edit indicator
-    const editIndicator = document.createElement('div');
-    editIndicator.className = 'edit-indicator';
-    editIndicator.innerHTML = '<i class="fas fa-pencil-alt"></i>';
-    editIndicator.title = 'Click para editar';
-    
-    element.style.position = 'relative';
-    element.appendChild(editIndicator);
-    
-    // Add click handler
-    element.addEventListener('click', function(e) {
-        if (e.target === editIndicator || editIndicator.contains(e.target)) {
-            e.stopPropagation();
-            startEditing(element);
-        }
-    });
-}
+    // Ensure element has data-edit-id set (should already be set by makeElementsEditable)
+    if (!element.getAttribute('data-edit-id')) {\n        const uniqueId = 'elem_' + element.tagName.toLowerCase() + '_' + Math.random().toString(36).substr(2, 9);\n        element.setAttribute('data-edit-id', uniqueId);\n    }\n    \n    // Create edit indicator\n    const editIndicator = document.createElement('div');\n    editIndicator.className = 'edit-indicator';\n    editIndicator.innerHTML = '<i class=\"fas fa-pencil-alt\"></i>';\n    editIndicator.title = 'Click para editar';\n    \n    element.style.position = 'relative';\n    element.appendChild(editIndicator);\n    \n    // Add click handler\n    element.addEventListener('click', function(e) {\n        if (e.target === editIndicator || editIndicator.contains(e.target)) {\n            e.stopPropagation();\n            startEditing(element);\n        }\n    });\n}
 
 function startEditing(element) {
     const editIndicator = element.querySelector('.edit-indicator');
@@ -1163,14 +1163,20 @@ function startEditing(element) {
 }
 
 async function saveContentChange(element, newText) {
-    const elementId = element.id || generateElementId(element);
-    element.id = elementId;
+    // Generate consistent ID and store in data attribute
+    let elementId = element.getAttribute('data-edit-id');
+    if (!elementId) {
+        elementId = 'elem_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        element.setAttribute('data-edit-id', elementId);
+    }
+    element.id = elementId; // Also set as ID for compatibility
 
     console.log('Saving content change:', elementId, newText.substring(0, 50) + '...');
+    console.log('Element:', element.tagName, element.className);
 
     // Always save to localStorage first (immediate feedback)
     saveContentChangeLocal(elementId, newText);
-    console.log('✓ Saved to localStorage');
+    console.log('✓ Saved to localStorage:', elementId, newText.substring(0, 50));
 
     // Also try to save to server
     if (useServerApi()) {
@@ -1317,12 +1323,15 @@ async function saveAllChanges() {
 }
 
 async function loadSavedContent() {
+    console.log('loadSavedContent() called');
     let contentBackup = {};
 
     if (useServerApi()) {
         try {
+            console.log('Loading from server...');
             const state = await getPortfolioState();
             contentBackup = state.contentBackup || {};
+            console.log('Loaded from server:', Object.keys(contentBackup).length, 'items');
         } catch (error) {
             console.warn('Could not load admin content from server, falling back to localStorage', error);
             contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
@@ -1331,10 +1340,29 @@ async function loadSavedContent() {
         contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
     }
 
+    console.log('Content backup to load:', Object.keys(contentBackup).length, 'items');
+    console.log('Available keys:', Object.keys(contentBackup));
+
+    // Try to find elements by data-edit-id first, then by id
     Object.keys(contentBackup).forEach(elementId => {
-        const element = document.getElementById(elementId);
+        console.log('Looking for element with id:', elementId);
+        
+        // First try to find by data-edit-id
+        let element = document.querySelector(`[data-edit-id="${elementId}"]`);
+        
+        // If not found, try by id
+        if (!element) {
+            element = document.getElementById(elementId);
+        }
+
         if (element) {
+            console.log('Found element, applying content:', elementId);
             element.textContent = contentBackup[elementId];
+            // Ensure data-edit-id is set
+            element.setAttribute('data-edit-id', elementId);
+            element.id = elementId;
+        } else {
+            console.warn('Element not found for id:', elementId);
         }
     });
 }
