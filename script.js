@@ -960,15 +960,13 @@ function assignElementIds() {
         const elements = document.querySelectorAll(selector);
         elements.forEach((element, index) => {
             if (!element.closest('#admin-panel') && !element.closest('.login-section')) {
-                // Generate consistent ID based on page structure
+                // Generate or reuse a stable ID for this element
                 let elementId = element.getAttribute('data-edit-id');
                 if (!elementId) {
-                    // Use a combination of selector and index to make it consistent
-                    const cleanSelector = selector.replace(/[^a-z0-9]/gi, '_');
-                    elementId = 'edit_' + cleanSelector + '_' + index;
+                    elementId = generateElementId(element);
                     element.setAttribute('data-edit-id', elementId);
                     element.id = elementId;
-                    console.log('Assigned data-edit-id:', elementId);
+                    console.log('Assigned stable data-edit-id:', elementId);
                 } else {
                     element.id = elementId;
                 }
@@ -1117,11 +1115,11 @@ function makeEditable(element) {
     element.classList.add('editable-element');
     element.setAttribute('contenteditable', 'false');
     
-    // Ensure element has data-edit-id set (should already be set by assignElementIds)
+    // Ensure element has a stable data-edit-id set (should already be set by assignElementIds)
     if (!element.getAttribute('data-edit-id')) {
-        const uniqueId = 'elem_' + element.tagName.toLowerCase() + '_' + Math.random().toString(36).substr(2, 9);
-        element.setAttribute('data-edit-id', uniqueId);
-        element.id = uniqueId;
+        const elementId = generateElementId(element);
+        element.setAttribute('data-edit-id', elementId);
+        element.id = elementId;
     }
     // Create edit indicator
     const editIndicator = document.createElement('div');
@@ -1228,10 +1226,10 @@ window.addEventListener('beforeunload', function() {
 });
 
 async function saveContentChange(element, newText) {
-    // Generate consistent ID and store in data attribute
+    // Generate consistent ID and store it in the data attribute
     let elementId = element.getAttribute('data-edit-id');
     if (!elementId) {
-        elementId = 'elem_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        elementId = generateElementId(element);
         element.setAttribute('data-edit-id', elementId);
     }
     element.id = elementId; // Also set as ID for compatibility
