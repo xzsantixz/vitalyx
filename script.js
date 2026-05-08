@@ -1074,8 +1074,74 @@ async function saveContentChangeServer(elementId, newText) {
     }
 }
 
-function saveAllChanges() {
-    showStatus('Todos los cambios guardados', 'success');
+async function saveAllChanges() {
+    try {
+        showStatus('Guardando cambios...', 'info');
+        
+        // Get all data
+        const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+        const portfolioGames = JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]');
+        const editedDefaultGames = JSON.parse(localStorage.getItem('vitalyx_edited_default_games') || '{}');
+        const deletedDefaultGames = JSON.parse(localStorage.getItem('vitalyx_deleted_default_games') || '[]');
+        
+        if (useServerApi()) {
+            // Save all content backups to server
+            for (const [elementId, content] of Object.entries(contentBackup)) {
+                try {
+                    await fetch('/api/content', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: elementId, content })
+                    });
+                } catch (err) {
+                    console.error('Error saving content:', err);
+                }
+            }
+            
+            // Save all portfolio games to server
+            for (let i = 0; i < portfolioGames.length; i++) {
+                try {
+                    await fetch(`/api/portfolio/custom/${i}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(portfolioGames[i])
+                    });
+                } catch (err) {
+                    console.error('Error saving game:', err);
+                }
+            }
+            
+            // Save edited default games
+            for (const [index, gameData] of Object.entries(editedDefaultGames)) {
+                try {
+                    await fetch(`/api/portfolio/default/${index}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(gameData)
+                    });
+                } catch (err) {
+                    console.error('Error saving default game:', err);
+                }
+            }
+            
+            // Save deleted default games
+            for (const index of deletedDefaultGames) {
+                try {
+                    await fetch(`/api/portfolio/default/${index}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                } catch (err) {
+                    console.error('Error deleting default game:', err);
+                }
+            }
+        }
+        
+        showStatus('✓ Todos los cambios guardados correctamente', 'success');
+    } catch (error) {
+        console.error('Error saving all changes:', error);
+        showStatus('✗ Error al guardar cambios', 'error');
+    }
 }
 
 async function loadSavedContent() {
@@ -1203,16 +1269,30 @@ function addPortfolioAdminControls() {
 
 async function deleteDefaultGame(index) {
     if (confirm('¿Estás seguro de que quieres eliminar este juego por defecto? Esta acción es permanente.')) {
-        if (useServerApi()) {
-            await deleteDefaultGameServer(index);
-        } else {
+        try {
+            // Mark as deleted in localStorage
             let deletedGames = JSON.parse(localStorage.getItem('vitalyx_deleted_default_games') || '[]');
             if (!deletedGames.includes(index)) {
                 deletedGames.push(index);
                 localStorage.setItem('vitalyx_deleted_default_games', JSON.stringify(deletedGames));
             }
-            loadPortfolioGames();
+            
+            // Try to delete from server
+            if (useServerApi()) {
+                try {
+                    await deleteDefaultGameServer(index);
+                    return; // Success, deleteDefaultGameServer handles the reload
+                } catch (err) {
+                    console.warn('Server delete failed, using localStorage', err);
+                }
+            }
+            
+            // Fallback: reload portfolio from localStorage
+            await loadPortfolioGames();
             showStatus('Juego eliminado', 'success');
+        } catch (error) {
+            console.error('Error deleting game:', error);
+            showStatus('Error al eliminar juego', 'error');
         }
     }
 }
@@ -1222,6 +1302,11 @@ function useServerApi() {
 }
 
 async function getPortfolioState() {
+    // Primero revisar si hay datos inyectados por el servidor
+    if (window.serverPortfolioData) {
+        return window.serverPortfolioData;
+    }
+
     if (useServerApi()) {
         try {
             const response = await fetch('/api/portfolio');
@@ -1229,7 +1314,7 @@ async function getPortfolioState() {
                 return await response.json();
             }
         } catch (error) {
-            console.warn('API not available, falling back to localStorage', error);
+            console.warn('Could not load admin content from server, falling back to localStorage', error);
         }
     }
 
@@ -1243,41 +1328,67 @@ async function getPortfolioState() {
 
 async function saveGameToServer(gameData, editIndex, editType) {
     const headers = { 'Content-Type': 'application/json' };
-
-    if (editType === 'edit-default') {
-        await fetch(`/api/portfolio/default/${editIndex}`, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify(gameData)
-        });
-        return;
-    }
-
-    if (editIndex !== null) {
-        await fetch(`/api/portfolio/custom/${editIndex}`, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify(gameData)
-        });
-    } else {
-        await fetch('/api/portfolio/custom', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(gameData)
-        });
+    
+    try {
+        let response;
+        
+        if (editType === 'edit-default') {
+            response = await fetch(`/api/portfolio/default/${editIndex}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(gameData)
+            });
+        } else if (editIndex !== null) {
+            response = await fetch(`/api/portfolio/custom/${editIndex}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(gameData)
+            });
+        } else {
+            response = await fetch('/api/portfolio/custom', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(gameData)
+            });
+        }
+        
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error saving game to server:', error);
+        throw error;
     }
 }
 
 async function deleteGameServer(index) {
-    await fetch(`/api/portfolio/custom/${index}`, { method: 'DELETE' });
-    await loadPortfolioGames();
-    showStatus('Juego eliminado', 'success');
+    try {
+        const response = await fetch(`/api/portfolio/custom/${index}`, { method: 'DELETE' });
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        await loadPortfolioGames();
+        showStatus('Juego eliminado', 'success');
+    } catch (error) {
+        console.error('Error deleting game from server:', error);
+        throw error;
+    }
 }
 
 async function deleteDefaultGameServer(index) {
-    await fetch(`/api/portfolio/default/${index}`, { method: 'DELETE' });
-    await loadPortfolioGames();
-    showStatus('Juego eliminado', 'success');
+    try {
+        const response = await fetch(`/api/portfolio/default/${index}`, { method: 'DELETE' });
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        await loadPortfolioGames();
+        showStatus('Juego eliminado', 'success');
+    } catch (error) {
+        console.error('Error deleting default game from server:', error);
+        throw error;
+    }
 }
 
 
@@ -1431,9 +1542,10 @@ async function saveGame(form, editIndex, editType) {
 }
 
 async function saveGameToStorage(gameData, editIndex, editType) {
-    if (useServerApi()) {
-        await saveGameToServer(gameData, editIndex, editType);
-    } else {
+    let success = false;
+    
+    // Always save to localStorage as backup
+    try {
         if (editType === 'edit-default') {
             let editedDefaults = JSON.parse(localStorage.getItem('vitalyx_edited_default_games') || '{}');
             editedDefaults[editIndex] = gameData;
@@ -1449,12 +1561,22 @@ async function saveGameToStorage(gameData, editIndex, editType) {
             
             localStorage.setItem('vitalyx_portfolio_games', JSON.stringify(games));
         }
+        success = true;
+    } catch (err) {
+        console.error('Error saving to localStorage:', err);
     }
     
-    // Close modal and refresh portfolio
-    document.getElementById('game-modal').remove();
-    await loadPortfolioGames();
-    showStatus(editType === 'edit-default' ? 'Juego por defecto actualizado' : (editIndex !== null ? 'Juego actualizado' : 'Juego creado'), 'success');
+    // Also try to save to server if available
+    if (useServerApi()) {
+        try {
+            await saveGameToServer(gameData, editIndex, editType);
+        } catch (err) {
+            console.warn('Server save failed, data saved to localStorage as backup', err);
+            success = true; // Still consider it success since localStorage worked
+        }
+    }
+    
+    return success;
 }
 
 function editGame(index) {
@@ -1515,14 +1637,25 @@ function editDefaultGame(index, cardElement = null) {
 
 async function deleteGame(index) {
     if (confirm('¿Estás seguro de que quieres eliminar este juego?')) {
-        if (useServerApi()) {
-            await deleteGameServer(index);
-        } else {
+        try {
+            if (useServerApi()) {
+                try {
+                    await deleteGameServer(index);
+                    return; // Success, deleteGameServer handles the reload
+                } catch (err) {
+                    console.warn('Server delete failed, using localStorage', err);
+                }
+            }
+            
+            // Fallback: delete from localStorage
             let games = JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]');
             games.splice(index, 1);
             localStorage.setItem('vitalyx_portfolio_games', JSON.stringify(games));
-            loadPortfolioGames();
+            await loadPortfolioGames();
             showStatus('Juego eliminado', 'success');
+        } catch (error) {
+            console.error('Error deleting game:', error);
+            showStatus('Error al eliminar juego', 'error');
         }
     }
 }

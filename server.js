@@ -44,6 +44,54 @@ function writeData(data) {
   fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
 }
 
+function applySavedChanges(htmlContent) {
+  try {
+    const data = readData();
+    let modifiedHtml = htmlContent;
+
+    // Aplicar cambios de contenido editado
+    if (data.contentBackup) {
+      Object.entries(data.contentBackup).forEach(([elementId, content]) => {
+        // Crear un patrón para encontrar el elemento por ID y reemplazar su contenido
+        const pattern = new RegExp(`(<[^>]*id="${elementId}"[^>]*>)(.*?)(</[^>]*>)`, 's');
+        modifiedHtml = modifiedHtml.replace(pattern, `$1${content}$3`);
+      });
+    }
+
+    // Inyectar datos del portfolio si estamos en la página de portfolio
+    if (htmlContent.includes('portfolio.html') || htmlContent.includes('portfolio-grid-modern')) {
+      modifiedHtml = injectPortfolioData(modifiedHtml, data);
+    }
+
+    return modifiedHtml;
+  } catch (error) {
+    console.error('Error applying saved changes:', error);
+    return htmlContent; // Devolver HTML original si hay error
+  }
+}
+
+function injectPortfolioData(htmlContent, data) {
+  // Crear un script que sobrescriba los datos del portfolio
+  const portfolioScript = `
+    <script>
+      // Datos del portfolio inyectados por el servidor
+      window.serverPortfolioData = ${JSON.stringify({
+        portfolioGames: data.portfolioGames || [],
+        editedDefaultGames: data.editedDefaultGames || {},
+        deletedDefaultGames: data.deletedDefaultGames || []
+      })};
+    </script>
+  `;
+
+  // Inyectar el script antes del cierre del body
+  return htmlContent.replace('</body>', portfolioScript + '</body>');
+}
+
+function applyPortfolioChanges(htmlContent, data) {
+  // Esta función ya no es necesaria, los cambios se aplican vía JavaScript
+  return htmlContent;
+}
+
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json',
@@ -64,6 +112,14 @@ function sendFile(res, filePath) {
       res.end('Not found');
       return;
     }
+
+    let content = data;
+
+    // Si es un archivo HTML, aplicar cambios guardados
+    if (ext === '.html') {
+      content = applySavedChanges(data.toString());
+    }
+
     // Headers para evitar cache durante desarrollo
     const headers = {
       'Content-Type': contentType,
@@ -72,7 +128,7 @@ function sendFile(res, filePath) {
       'Expires': '0'
     };
     res.writeHead(200, headers);
-    res.end(data);
+    res.end(content);
   });
 }
 
