@@ -755,29 +755,53 @@ function initSavedContentLoader() {
 
 async function loadAndApplySavedContent() {
     try {
-        // Cargar datos del servidor
+        // Intentar cargar datos del servidor primero
         const baseUrl = getApiBaseUrl();
         const response = await fetch(`${baseUrl}/api/portfolio`);
-        if (!response.ok) {
-            console.warn('No se pudieron cargar datos del servidor');
-            return;
-        }
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Loaded data from server:', data);
 
-        const data = await response.json();
+            // Aplicar cambios de contenido editado
+            if (data.contentBackup) {
+                Object.entries(data.contentBackup).forEach(([elementId, content]) => {
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        element.textContent = content;
+                        console.log('Applied content for element:', elementId);
+                    }
+                });
+            }
 
-        // Aplicar cambios de contenido editado
-        if (data.contentBackup) {
-            Object.entries(data.contentBackup).forEach(([elementId, content]) => {
+            // Si estamos en portfolio, aplicar cambios del portfolio
+            if (window.location.pathname.includes('portfolio.html') || document.querySelector('.portfolio-grid-modern')) {
+                await applyPortfolioChangesFromServer(data);
+            }
+        } else {
+            console.warn('Server not available, falling back to localStorage');
+            // Fallback a localStorage si el servidor no está disponible
+            const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+            Object.entries(contentBackup).forEach(([elementId, content]) => {
                 const element = document.getElementById(elementId);
                 if (element) {
                     element.textContent = content;
+                    console.log('Applied content from localStorage for element:', elementId);
                 }
             });
         }
-
-        // Si estamos en portfolio, aplicar cambios del portfolio
-        if (window.location.pathname.includes('portfolio.html') || document.querySelector('.portfolio-grid-modern')) {
-            await applyPortfolioChangesFromServer(data);
+    } catch (error) {
+        console.error('Error loading saved content:', error);
+        // Fallback a localStorage en caso de error
+        const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+        Object.entries(contentBackup).forEach(([elementId, content]) => {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = content;
+                console.log('Applied content from localStorage (fallback) for element:', elementId);
+            }
+        });
+    }
+}
         }
 
     } catch (error) {
@@ -1140,18 +1164,22 @@ async function saveContentChange(element, newText) {
 
     // Always save to localStorage first (immediate feedback)
     saveContentChangeLocal(elementId, newText);
+    console.log('✓ Saved to localStorage');
 
     // Also try to save to server
     if (useServerApi()) {
         console.log('Attempting to save to server...');
         try {
             await saveContentChangeServer(elementId, newText);
-            console.log('Content saved to server successfully');
+            console.log('✓ Content saved to server successfully');
+            showStatus('✓ Cambios guardados en servidor', 'success');
         } catch (error) {
-            console.warn('Server save failed, content saved locally only', error);
+            console.warn('✗ Server save failed, content saved locally only', error);
+            showStatus('⚠ Cambios guardados localmente (servidor no disponible)', 'warning');
         }
     } else {
         console.log('Server API not available, saving locally only');
+        showStatus('✓ Cambios guardados localmente', 'success');
     }
 }
 
@@ -1204,7 +1232,7 @@ async function saveContentChangeServer(elementId, newText) {
 
 async function saveAllChanges() {
     try {
-        showStatus('Sincronizando con servidor...', 'info');
+        showStatus('🔄 Sincronizando con servidor...', 'info');
 
         // Get all data from localStorage
         const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
@@ -1212,8 +1240,16 @@ async function saveAllChanges() {
         const editedDefaultGames = JSON.parse(localStorage.getItem('vitalyx_edited_default_games') || '{}');
         const deletedDefaultGames = JSON.parse(localStorage.getItem('vitalyx_deleted_default_games') || '[]');
 
+        console.log('Syncing data:', {
+            contentBackup: Object.keys(contentBackup).length,
+            portfolioGames: portfolioGames.length,
+            editedDefaultGames: Object.keys(editedDefaultGames).length,
+            deletedDefaultGames: deletedDefaultGames.length
+        });
+
         if (useServerApi()) {
             // Sync all content backups to server
+            let syncedContent = 0;
             for (const [elementId, content] of Object.entries(contentBackup)) {
                 try {
                     const baseUrl = getApiBaseUrl();
@@ -1222,12 +1258,14 @@ async function saveAllChanges() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id: elementId, content })
                     });
+                    syncedContent++;
                 } catch (err) {
                     console.error('Error syncing content:', elementId, err);
                 }
             }
 
             // Sync all portfolio games to server
+            let syncedGames = 0;
             for (let i = 0; i < portfolioGames.length; i++) {
                 try {
                     const baseUrl = getApiBaseUrl();
@@ -1236,12 +1274,14 @@ async function saveAllChanges() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(portfolioGames[i])
                     });
+                    syncedGames++;
                 } catch (err) {
                     console.error('Error syncing game:', i, err);
                 }
             }
 
             // Sync edited default games
+            let syncedEdited = 0;
             for (const [index, gameData] of Object.entries(editedDefaultGames)) {
                 try {
                     const baseUrl = getApiBaseUrl();
@@ -1250,22 +1290,30 @@ async function saveAllChanges() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(gameData)
                     });
+                    syncedEdited++;
                 } catch (err) {
                     console.error('Error syncing default game:', index, err);
                 }
             }
 
             // Sync deleted default games
+            let syncedDeleted = 0;
             for (const index of deletedDefaultGames) {
                 try {
                     const baseUrl = getApiBaseUrl();
                     await fetch(`${baseUrl}/api/portfolio/default/${index}`, {
+                        method: 'DELETE'
+                    });
+                    syncedDeleted++;
+                } catch (err) {
                     console.error('Error syncing deleted game:', index, err);
                 }
             }
-        }
 
-        showStatus('✓ Todos los cambios sincronizados', 'success');
+            showStatus(`✓ Sincronizado: ${syncedContent} textos, ${syncedGames} juegos, ${syncedEdited} editados, ${syncedDeleted} eliminados`, 'success');
+        } else {
+            showStatus('✓ Datos guardados localmente (sin servidor)', 'success');
+        }
     } catch (error) {
         console.error('Error syncing all changes:', error);
         showStatus('✗ Error al sincronizar cambios', 'error');
