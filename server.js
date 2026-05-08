@@ -98,6 +98,8 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   let pathname = url.pathname;
 
+  console.log(`${req.method} ${pathname} - Request received`);
+
   // Handle OPTIONS requests for CORS
   if (req.method === 'OPTIONS') {
     res.writeHead(200, {
@@ -109,26 +111,37 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Strip /app prefix for frontend routes
+  // Strip /app prefix for frontend routes (for Render deployments)
   if (pathname.startsWith('/app')) {
     pathname = pathname.slice(4); // Remove '/app' prefix
     if (pathname === '') pathname = '/'; // If just /app, serve index.html
   }
 
+  console.log(`Processed pathname: ${pathname}`);
+
   if (pathname === '/api/portfolio' && req.method === 'GET') {
     console.log('GET /api/portfolio request received');
-    const data = readData();
-    console.log('Sending portfolio data:', Object.keys(data));
-    sendJson(res, 200, data);
+    try {
+      const data = readData();
+      console.log('GET /api/portfolio sending data with keys:', Object.keys(data));
+      console.log('ContentBackup keys:', data.contentBackup ? Object.keys(data.contentBackup) : 'none');
+      sendJson(res, 200, data);
+    } catch (err) {
+      console.error('Error in GET /api/portfolio:', err);
+      sendJson(res, 500, { error: 'Error interno del servidor' });
+    }
     return;
   }
 
   // Endpoint para verificar estado del servidor (útil para desarrollo)
   if (pathname === '/api/status' && req.method === 'GET') {
+    console.log('GET /api/status request received');
     sendJson(res, 200, {
       status: 'running',
       timestamp: new Date().toISOString(),
-      version: '1.0.0'
+      version: '1.0.0',
+      dataFileExists: fs.existsSync(dataFile),
+      dataKeys: Object.keys(readData())
     });
     return;
   }
@@ -143,24 +156,33 @@ const server = http.createServer(async (req, res) => {
     console.log('PUT /api/content request received');
     try {
       const payload = await parseRequestBody(req);
-      console.log('Payload received:', payload);
+      console.log('PUT /api/content payload received:', JSON.stringify(payload, null, 2));
+
       const data = readData();
       const { id, content } = payload;
 
       if (!id || typeof content !== 'string') {
-        console.log('Invalid payload - missing id or content');
+        console.log('PUT /api/content invalid payload - missing id or content');
         sendJson(res, 400, { error: 'Faltan datos: id o content' });
         return;
       }
 
-      data.contentBackup = data.contentBackup || {};
+      // Ensure contentBackup exists
+      if (!data.contentBackup) {
+        data.contentBackup = {};
+      }
+
+      // Save the content
       data.contentBackup[id] = content;
       writeData(data);
-      console.log('Content saved successfully:', id);
-      sendJson(res, 200, { message: 'Contenido guardado' });
+
+      console.log(`PUT /api/content content saved successfully for id: ${id}`);
+      console.log('Current contentBackup keys:', Object.keys(data.contentBackup));
+
+      sendJson(res, 200, { message: 'Contenido guardado', id, saved: true });
     } catch (err) {
       console.error('Error in PUT /api/content:', err);
-      sendJson(res, 400, { error: 'JSON inválido' });
+      sendJson(res, 500, { error: 'Error interno del servidor' });
     }
     return;
   }

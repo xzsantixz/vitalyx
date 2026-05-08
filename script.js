@@ -754,23 +754,34 @@ function initSavedContentLoader() {
 }
 
 async function loadAndApplySavedContent() {
+    console.log('Loading saved content...');
     try {
         // Intentar cargar datos del servidor primero
         const baseUrl = getApiBaseUrl();
-        const response = await fetch(`${baseUrl}/api/portfolio`);
+        const url = `${baseUrl}/api/portfolio`;
+        console.log('Fetching from:', url);
+
+        const response = await fetch(url);
+        console.log('Server response status:', response.status);
+
         if (response.ok) {
             const data = await response.json();
-            console.log('Loaded data from server:', data);
+            console.log('Server data received:', data);
 
             // Aplicar cambios de contenido editado
-            if (data.contentBackup) {
+            if (data.contentBackup && Object.keys(data.contentBackup).length > 0) {
+                console.log('Applying contentBackup:', Object.keys(data.contentBackup));
                 Object.entries(data.contentBackup).forEach(([elementId, content]) => {
                     const element = document.getElementById(elementId);
                     if (element) {
                         element.textContent = content;
                         console.log('Applied content for element:', elementId);
+                    } else {
+                        console.warn('Element not found:', elementId);
                     }
                 });
+            } else {
+                console.log('No contentBackup data from server');
             }
 
             // Si estamos en portfolio, aplicar cambios del portfolio
@@ -778,9 +789,10 @@ async function loadAndApplySavedContent() {
                 await applyPortfolioChangesFromServer(data);
             }
         } else {
-            console.warn('Server not available, falling back to localStorage');
+            console.warn('Server not available, falling back to localStorage. Status:', response.status);
             // Fallback a localStorage si el servidor no está disponible
             const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+            console.log('LocalStorage contentBackup:', Object.keys(contentBackup));
             Object.entries(contentBackup).forEach(([elementId, content]) => {
                 const element = document.getElementById(elementId);
                 if (element) {
@@ -793,6 +805,7 @@ async function loadAndApplySavedContent() {
         console.error('Error loading saved content:', error);
         // Fallback a localStorage en caso de error
         const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+        console.log('Fallback to localStorage contentBackup:', Object.keys(contentBackup));
         Object.entries(contentBackup).forEach(([elementId, content]) => {
             const element = document.getElementById(elementId);
             if (element) {
@@ -802,13 +815,6 @@ async function loadAndApplySavedContent() {
         });
     }
 }
-        }
-
-    } catch (error) {
-        console.warn('Error cargando contenido guardado:', error);
-        // Fallback a localStorage
-        loadSavedContentFromLocalStorage();
-    }
 }
 
 async function applyPortfolioChangesFromServer(data) {
@@ -1190,29 +1196,9 @@ function saveContentChangeLocal(elementId, newText) {
 }
 
 function getApiBaseUrl() {
-    // Detectar automáticamente la ruta base
-    const hostname = window.location.hostname;
-    const pathname = window.location.pathname;
-
-    // Si estamos en localhost, usar rutas relativas
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return '';
-    }
-
-    // En producción (Render), detectar si estamos en una subruta
-    // Render a veces sirve desde rutas como /app o el nombre del proyecto
-    const pathParts = pathname.split('/').filter(p => p);
-
-    // Si hay partes en el path y no es una página HTML directa,
-    // probablemente estamos en una subruta
-    if (pathParts.length > 0 && !pathname.includes('.html')) {
-        // Construir la ruta base: desde el inicio hasta la carpeta del proyecto
-        // Por ejemplo, si pathname es '/app/index.html', la ruta base sería '/app'
-        const basePath = '/' + pathParts[0];
-        console.log('Detected base path:', basePath);
-        return basePath;
-    }
-
+    // Siempre usar rutas relativas - el servidor las maneja correctamente
+    // En desarrollo local: rutas relativas funcionan
+    // En Render: el servidor está configurado para manejar rutas desde cualquier base
     return '';
 }
 
