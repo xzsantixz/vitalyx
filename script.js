@@ -15,7 +15,16 @@ document.addEventListener('DOMContentLoaded', function() {
     initHeroFloatingCards();
     initSplashWelcome();
     initSecretLoginSequence();
+    
+    // IMPORTANT: Assign IDs to all potential editable elements FIRST
+    // This happens regardless of admin status so content can be loaded
+    assignElementIds();
+    
+    // Then initialize admin editor if logged in
     initAdminEditor();
+    
+    // THEN load saved content (can find elements by their IDs)
+    initSavedContentLoader();
     
     // Load custom portfolio games if on portfolio page
     if (window.location.pathname.includes('portfolio.html')) {
@@ -747,9 +756,122 @@ function initSplashWelcome() {
   });
 }
 
-/* ========================================
-   SECRET LOGIN SEQUENCE
-   ======================================== */
+function initSavedContentLoader() {
+    // Cargar contenido guardado inmediatamente
+    loadAndApplySavedContent();
+}
+
+async function loadAndApplySavedContent() {
+    console.log('Loading saved content...');
+    const localContentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+    let serverData = null;
+    let contentBackup = {};
+
+    try {
+        // Intentar cargar datos del servidor primero
+        const url = 'api/portfolio';
+        console.log('Fetching from:', url);
+
+        const response = await fetch(url);
+        console.log('Server response status:', response.status);
+
+        if (response.ok) {
+            serverData = await response.json();
+            console.log('Server data received:', serverData);
+            contentBackup = serverData.contentBackup || {};
+
+            if (!contentBackup || Object.keys(contentBackup).length === 0) {
+                console.log('No contentBackup data from server, keeping localStorage data if present');
+            }
+        } else {
+            console.warn('Server not available, falling back to localStorage. Status:', response.status);
+        }
+    } catch (error) {
+        console.warn('Error loading from server, falling back to localStorage', error);
+    }
+
+    const mergedContentBackup = Object.assign({}, contentBackup, localContentBackup);
+    console.log('Merged content backup keys:', Object.keys(mergedContentBackup));
+
+    Object.entries(mergedContentBackup).forEach(([elementId, content]) => {
+        let element = document.querySelector(`[data-edit-id="${elementId}"]`);
+        if (!element) {
+            element = document.getElementById(elementId);
+        }
+        if (element) {
+            element.textContent = content;
+            element.setAttribute('data-edit-id', elementId);
+            element.id = elementId;
+            console.log('Applied content for element:', elementId);
+        } else {
+            console.warn('Element not found:', elementId);
+        }
+    });
+
+    if (serverData && (window.location.pathname.includes('portfolio.html') || document.querySelector('.portfolio-grid-modern'))) {
+        await applyPortfolioChangesFromServer(serverData);
+    }
+}
+
+async function applyPortfolioChangesFromServer(data) {
+    const portfolioGrid = document.querySelector('.portfolio-grid-modern');
+    if (!portfolioGrid) return;
+
+    const games = data.portfolioGames || [];
+    const deletedDefaultGames = data.deletedDefaultGames || [];
+    const editedDefaultGames = data.editedDefaultGames || {};
+
+    // Get existing default games
+    const defaultCards = Array.from(portfolioGrid.querySelectorAll('.project-card')).filter(card =>
+        card.querySelector('.project-placeholder') && card.dataset.customIndex === undefined
+    );
+
+    // Clear all cards first
+    portfolioGrid.innerHTML = '';
+
+    // Add default games back, skipping deleted ones, using edited if available
+    defaultCards.forEach((card, index) => {
+        if (!deletedDefaultGames.includes(index)) {
+            if (editedDefaultGames[index]) {
+                // Use edited version
+                const gameCard = createGameCard(editedDefaultGames[index], index, { defaultIndex: index });
+                portfolioGrid.appendChild(gameCard);
+            } else {
+                // Use original
+                card.dataset.defaultIndex = index;
+                card.dataset.gameId = `default-${index}`;
+                portfolioGrid.appendChild(card);
+            }
+        }
+    });
+
+    // Add custom games
+    games.forEach((game, index) => {
+        const gameCard = createGameCard(game, index, { customIndex: index });
+        portfolioGrid.appendChild(gameCard);
+    });
+
+    // Re-add admin controls only for admins
+    if (isAdminUser()) {
+        addPortfolioAdminControls();
+    }
+}
+
+function loadSavedContentFromLocalStorage() {
+    // Fallback function for localStorage
+    const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+    Object.keys(contentBackup).forEach(elementId => {
+        let element = document.querySelector(`[data-edit-id="${elementId}"]`);
+        if (!element) {
+            element = document.getElementById(elementId);
+        }
+        if (element) {
+            element.textContent = contentBackup[elementId];
+            element.setAttribute('data-edit-id', elementId);
+            element.id = elementId;
+        }
+    });
+}
 function initSecretLoginSequence() {
     // Only initialize on index.html
     if (!window.location.pathname.includes('index.html') && window.location.pathname !== '/') return;
@@ -814,6 +936,46 @@ function initSecretLoginSequence() {
    ======================================== */
 function isAdminUser() {
     return sessionStorage.getItem('vitalyx_admin_logged_in') === 'true';
+}
+
+function assignElementIds() {
+    // Define editable elements
+    const editableSelectors = [
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'p:not(.form-note):not(.footer-legal)',
+        '.hero-subtitle',
+        '.section-title',
+        '.section-description',
+        '.service-description',
+        '.feature-description',
+        '.project-desc',
+        '.faq-answer p',
+        '.contact-subtitle'
+    ];
+    
+    console.log('Assigning element IDs for content tracking...');
+    let elementCounter = 0;
+    
+    editableSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach((element, index) => {
+            if (!element.closest('#admin-panel') && !element.closest('.login-section')) {
+                // Generate or reuse a stable ID for this element
+                let elementId = element.getAttribute('data-edit-id');
+                if (!elementId) {
+                    elementId = generateElementId(element);
+                    element.setAttribute('data-edit-id', elementId);
+                    element.id = elementId;
+                    console.log('Assigned stable data-edit-id:', elementId);
+                } else {
+                    element.id = elementId;
+                }
+                elementCounter++;
+            }
+        });
+    });
+    
+    console.log('Total elements assigned IDs:', elementCounter);
 }
 
 function initAdminEditor() {
@@ -934,49 +1096,46 @@ function showAdminNotification() {
 }
 
 function makeElementsEditable() {
-    // Define editable elements
-    const editableSelectors = [
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'p:not(.form-note):not(.footer-legal)',
-        '.hero-subtitle',
-        '.section-title',
-        '.section-description',
-        '.service-description',
-        '.feature-description',
-        '.project-desc',
-        '.faq-answer p',
-        '.contact-subtitle'
-    ];
+    // Make all elements with data-edit-id editable in admin mode
+    // IDs were already assigned by assignElementIds()
+    const editableElements = document.querySelectorAll('[data-edit-id]');
     
-    editableSelectors.forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(element => {
-            if (!element.closest('#admin-panel') && !element.closest('.login-section')) {
-                makeEditable(element);
-            }
-        });
+    console.log('Making ' + editableElements.length + ' elements editable for admin mode...');
+    
+    editableElements.forEach(element => {
+        if (!element.closest('#admin-panel') && !element.closest('.login-section')) {
+            makeEditable(element);
+        }
     });
+    
+    console.log('Total elements made editable:', editableElements.length);
 }
 
 function makeEditable(element) {
     element.classList.add('editable-element');
     element.setAttribute('contenteditable', 'false');
     
+    // Ensure element has a stable data-edit-id set (should already be set by assignElementIds)
+    if (!element.getAttribute('data-edit-id')) {
+        const elementId = generateElementId(element);
+        element.setAttribute('data-edit-id', elementId);
+        element.id = elementId;
+    }
     // Create edit indicator
     const editIndicator = document.createElement('div');
     editIndicator.className = 'edit-indicator';
     editIndicator.innerHTML = '<i class="fas fa-pencil-alt"></i>';
     editIndicator.title = 'Click para editar';
-    
+
     element.style.position = 'relative';
     element.appendChild(editIndicator);
-    
-    // Add click handler
+    element.style.cursor = 'text';
+
+    // Add click handler: edit when clicking anywhere inside the element
     element.addEventListener('click', function(e) {
-        if (e.target === editIndicator || editIndicator.contains(e.target)) {
-            e.stopPropagation();
-            startEditing(element);
-        }
+        if (element.getAttribute('contenteditable') === 'true') return;
+        e.stopPropagation();
+        startEditing(element);
     });
 }
 
@@ -997,6 +1156,19 @@ function startEditing(element) {
     // Hide indicator while editing
     editIndicator.style.display = 'none';
     
+    let typingSavedText = originalText;
+    const debouncedSave = debounce(() => {
+        const currentText = element.textContent.trim();
+        if (currentText !== typingSavedText) {
+            typingSavedText = currentText;
+            saveContentChange(element, currentText);
+        }
+    }, 500);
+
+    function handleInput() {
+        debouncedSave();
+    }
+
     // Handle finish editing
     let editingFinished = false;
     
@@ -1007,7 +1179,7 @@ function startEditing(element) {
         element.setAttribute('contenteditable', 'false');
         editIndicator.style.display = 'block';
         
-        // Save change
+        // Save final change
         const newText = element.textContent.trim();
         if (newText !== originalText) {
             saveContentChange(element, newText);
@@ -1017,6 +1189,7 @@ function startEditing(element) {
         // Remove event listeners
         element.removeEventListener('blur', finishEditing);
         element.removeEventListener('keydown', handleKeyDown);
+        element.removeEventListener('input', handleInput);
         document.removeEventListener('click', handleOutsideClick);
     }
     
@@ -1038,39 +1211,234 @@ function startEditing(element) {
     
     element.addEventListener('blur', finishEditing);
     element.addEventListener('keydown', handleKeyDown);
+    element.addEventListener('input', handleInput);
     document.addEventListener('click', handleOutsideClick);
 }
 
-function saveContentChange(element, newText) {
-    const elementId = element.id || generateElementId(element);
-    element.id = elementId;
-    
+window.addEventListener('beforeunload', function() {
+    const editingElements = document.querySelectorAll('[contenteditable="true"]');
+    editingElements.forEach(element => {
+        const elementId = element.getAttribute('data-edit-id') || element.id;
+        if (!elementId) return;
+        const newText = element.textContent.trim();
+        saveContentChangeLocal(elementId, newText);
+    });
+});
+
+async function saveContentChange(element, newText) {
+    // Generate consistent ID and store it in the data attribute
+    let elementId = element.getAttribute('data-edit-id');
+    if (!elementId) {
+        elementId = generateElementId(element);
+        element.setAttribute('data-edit-id', elementId);
+    }
+    element.id = elementId; // Also set as ID for compatibility
+
+    console.log('Saving content change:', elementId, newText.substring(0, 50) + '...');
+    console.log('Element:', element.tagName, element.className);
+
+    // Always save to localStorage first (immediate feedback)
+    saveContentChangeLocal(elementId, newText);
+    console.log('✓ Saved to localStorage:', elementId, newText.substring(0, 50));
+
+    // Also try to save to server
+    if (useServerApi()) {
+        console.log('Attempting to save to server...');
+        try {
+            await saveContentChangeServer(elementId, newText);
+            console.log('✓ Content saved to server successfully');
+            showStatus('✓ Cambios guardados en servidor', 'success');
+        } catch (error) {
+            console.warn('✗ Server save failed, content saved locally only', error);
+            showStatus('⚠ Cambios guardados localmente (servidor no disponible)', 'warning');
+        }
+    } else {
+        console.log('Server API not available, saving locally only');
+        showStatus('✓ Cambios guardados localmente', 'success');
+    }
+}
+
+function saveContentChangeLocal(elementId, newText) {
     let contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
     contentBackup[elementId] = newText;
     localStorage.setItem('vitalyx_content_backup', JSON.stringify(contentBackup));
 }
 
-function saveAllChanges() {
-    // This is already handled by individual saves, but we can add additional logic here
-    showStatus('Todos los cambios guardados', 'success');
+function getApiBaseUrl() {
+    return '';
 }
 
-function loadSavedContent() {
-    const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
-    
+async function saveContentChangeServer(elementId, newText) {
+    const headers = { 'Content-Type': 'application/json' };
+    const url = 'api/content';
+    console.log('Making request to:', url);
+
+    const response = await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ id: elementId, content: newText })
+    });
+
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error('Failed to save content to server');
+    }
+
+    const result = await response.json();
+    console.log('Server response:', result);
+}
+
+async function saveAllChanges() {
+    try {
+        showStatus('🔄 Sincronizando con servidor...', 'info');
+
+        // Get all data from localStorage
+        const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+        const portfolioGames = JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]');
+        const editedDefaultGames = JSON.parse(localStorage.getItem('vitalyx_edited_default_games') || '{}');
+        const deletedDefaultGames = JSON.parse(localStorage.getItem('vitalyx_deleted_default_games') || '[]');
+
+        console.log('Syncing data:', {
+            contentBackup: Object.keys(contentBackup).length,
+            portfolioGames: portfolioGames.length,
+            editedDefaultGames: Object.keys(editedDefaultGames).length,
+            deletedDefaultGames: deletedDefaultGames.length
+        });
+
+        if (useServerApi()) {
+            // Sync all content backups to server
+            let syncedContent = 0;
+            for (const [elementId, content] of Object.entries(contentBackup)) {
+                try {
+                    await fetch('api/content', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: elementId, content })
+                    });
+                    syncedContent++;
+                } catch (err) {
+                    console.error('Error syncing content:', elementId, err);
+                }
+            }
+
+            // Sync all portfolio games to server
+            let syncedGames = 0;
+            for (let i = 0; i < portfolioGames.length; i++) {
+                try {
+                    await fetch(`api/portfolio/custom/${i}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(portfolioGames[i])
+                    });
+                    syncedGames++;
+                } catch (err) {
+                    console.error('Error syncing game:', i, err);
+                }
+            }
+
+            // Sync edited default games
+            let syncedEdited = 0;
+            for (const [index, gameData] of Object.entries(editedDefaultGames)) {
+                try {
+                    await fetch(`api/portfolio/default/${index}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(gameData)
+                    });
+                    syncedEdited++;
+                } catch (err) {
+                    console.error('Error syncing default game:', index, err);
+                }
+            }
+
+            // Sync deleted default games
+            let syncedDeleted = 0;
+            for (const index of deletedDefaultGames) {
+                try {
+                    await fetch(`api/portfolio/default/${index}`, {
+                        method: 'DELETE'
+                    });
+                    syncedDeleted++;
+                } catch (err) {
+                    console.error('Error syncing deleted game:', index, err);
+                }
+            }
+
+            showStatus(`✓ Sincronizado: ${syncedContent} textos, ${syncedGames} juegos, ${syncedEdited} editados, ${syncedDeleted} eliminados`, 'success');
+        } else {
+            showStatus('✓ Datos guardados localmente (sin servidor)', 'success');
+        }
+    } catch (error) {
+        console.error('Error syncing all changes:', error);
+        showStatus('✗ Error al sincronizar cambios', 'error');
+    }
+}
+
+async function loadSavedContent() {
+    console.log('loadSavedContent() called');
+    const localContentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+    let contentBackup = {};
+
+    if (useServerApi()) {
+        try {
+            console.log('Loading from server...');
+            const state = await getPortfolioState();
+            contentBackup = state.contentBackup || {};
+            console.log('Loaded from server:', Object.keys(contentBackup).length, 'items');
+        } catch (error) {
+            console.warn('Could not load admin content from server, falling back to localStorage', error);
+            contentBackup = {};
+        }
+    }
+
+    contentBackup = Object.assign({}, contentBackup, localContentBackup);
+
+    console.log('Content backup to load:', Object.keys(contentBackup).length, 'items');
+    console.log('Available keys:', Object.keys(contentBackup));
+
+    // Try to find elements by data-edit-id first, then by id
     Object.keys(contentBackup).forEach(elementId => {
-        const element = document.getElementById(elementId);
+        console.log('Looking for element with id:', elementId);
+        
+        // First try to find by data-edit-id
+        let element = document.querySelector(`[data-edit-id="${elementId}"]`);
+        
+        // If not found, try by id
+        if (!element) {
+            element = document.getElementById(elementId);
+        }
+
         if (element) {
+            console.log('Found element, applying content:', elementId);
             element.textContent = contentBackup[elementId];
+            // Ensure data-edit-id is set
+            element.setAttribute('data-edit-id', elementId);
+            element.id = elementId;
+        } else {
+            console.warn('Element not found for id:', elementId);
         }
     });
 }
 
 function generateElementId(element) {
-    // Generate a unique ID based on element content and position
-    const text = element.textContent.substring(0, 50).replace(/[^a-zA-Z0-9]/g, '');
-    const index = Array.from(element.parentNode.children).indexOf(element);
-    return `editable-${text}-${index}`;
+    // Generate a stable ID based on element position and structure
+    const tag = element.tagName.toLowerCase();
+    const classes = Array.from(element.classList).join('-') || 'noclass';
+    const parent = element.parentNode;
+    const index = parent ? Array.from(parent.children).indexOf(element) : 0;
+    const pathParts = [];
+    let node = element;
+
+    while (node && node !== document.body && node.tagName) {
+        const nodeIndex = node.parentNode ? Array.from(node.parentNode.children).indexOf(node) : 0;
+        pathParts.unshift(`${node.tagName.toLowerCase()}${nodeIndex}`);
+        node = node.parentNode;
+    }
+
+    return `editable-${tag}-${classes}-${index}-${pathParts.join('-')}`;
 }
 
 function showStatus(message, type = 'info') {
@@ -1125,7 +1493,10 @@ function addPortfolioAdminControls() {
                 deleteGame(customIndex);
             });
         } else {
-            const defaultIndex = card.dataset.defaultIndex !== undefined ? parseInt(card.dataset.defaultIndex, 10) : defaultCards.indexOf(card);
+            // Always use dataset.defaultIndex for consistency
+            const defaultIndex = card.dataset.defaultIndex !== undefined ? parseInt(card.dataset.defaultIndex, 10) : null;
+            
+            if (defaultIndex === null) return; // Skip if no index found
 
             adminControls.innerHTML = `
                 <button class="project-admin-btn edit-btn" data-index="${defaultIndex}" data-default="true" title="Editar juego">
@@ -1138,7 +1509,8 @@ function addPortfolioAdminControls() {
 
             adminControls.querySelector('.edit-btn').addEventListener('click', function(e) {
                 e.stopPropagation();
-                editDefaultGame(defaultIndex);
+                // Pass card reference instead of just index
+                editDefaultGame(defaultIndex, card);
             });
 
             adminControls.querySelector('.delete-btn').addEventListener('click', function(e) {
@@ -1153,16 +1525,29 @@ function addPortfolioAdminControls() {
 
 async function deleteDefaultGame(index) {
     if (confirm('¿Estás seguro de que quieres eliminar este juego por defecto? Esta acción es permanente.')) {
-        if (useServerApi()) {
-            await deleteDefaultGameServer(index);
-        } else {
+        try {
+            // Mark as deleted in localStorage
             let deletedGames = JSON.parse(localStorage.getItem('vitalyx_deleted_default_games') || '[]');
             if (!deletedGames.includes(index)) {
                 deletedGames.push(index);
                 localStorage.setItem('vitalyx_deleted_default_games', JSON.stringify(deletedGames));
             }
-            loadPortfolioGames();
+
+            // Try to delete from server
+            if (useServerApi()) {
+                try {
+                    await deleteDefaultGameServer(index);
+                } catch (err) {
+                    console.warn('Server delete failed, deleted locally only', err);
+                }
+            }
+
+            // Reload portfolio
+            await loadPortfolioGames();
             showStatus('Juego eliminado', 'success');
+        } catch (error) {
+            console.error('Error deleting game:', error);
+            showStatus('Error al eliminar juego', 'error');
         }
     }
 }
@@ -1174,59 +1559,86 @@ function useServerApi() {
 async function getPortfolioState() {
     if (useServerApi()) {
         try {
-            const response = await fetch('/api/portfolio');
+            const response = await fetch('api/portfolio');
             if (response.ok) {
                 return await response.json();
             }
         } catch (error) {
-            console.warn('API not available, falling back to localStorage', error);
+            console.warn('Could not load admin content from server, falling back to localStorage', error);
         }
     }
 
     return {
         portfolioGames: JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]'),
         editedDefaultGames: JSON.parse(localStorage.getItem('vitalyx_edited_default_games') || '{}'),
-        deletedDefaultGames: JSON.parse(localStorage.getItem('vitalyx_deleted_default_games') || '[]')
+        deletedDefaultGames: JSON.parse(localStorage.getItem('vitalyx_deleted_default_games') || '[]'),
+        contentBackup: JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}')
     };
 }
 
 async function saveGameToServer(gameData, editIndex, editType) {
     const headers = { 'Content-Type': 'application/json' };
-
-    if (editType === 'edit-default') {
-        await fetch(`/api/portfolio/default/${editIndex}`, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify(gameData)
-        });
-        return;
-    }
-
-    if (editIndex !== null) {
-        await fetch(`/api/portfolio/custom/${editIndex}`, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify(gameData)
-        });
-    } else {
-        await fetch('/api/portfolio/custom', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(gameData)
-        });
+    
+    try {
+        let response;
+        
+        if (editType === 'edit-default') {
+            response = await fetch(`api/portfolio/default/${editIndex}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(gameData)
+            });
+        } else if (editIndex !== null) {
+            response = await fetch(`api/portfolio/custom/${editIndex}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(gameData)
+            });
+        } else {
+            response = await fetch('api/portfolio/custom', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(gameData)
+            });
+        }
+        
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error saving game to server:', error);
+        throw error;
     }
 }
 
 async function deleteGameServer(index) {
-    await fetch(`/api/portfolio/custom/${index}`, { method: 'DELETE' });
-    await loadPortfolioGames();
-    showStatus('Juego eliminado', 'success');
+    try {
+        const response = await fetch(`api/portfolio/custom/${index}`, { method: 'DELETE' });
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        // Client handles reload and status
+        return true;
+    } catch (error) {
+        console.error('Error deleting game from server:', error);
+        throw error;
+    }
 }
 
 async function deleteDefaultGameServer(index) {
-    await fetch(`/api/portfolio/default/${index}`, { method: 'DELETE' });
-    await loadPortfolioGames();
-    showStatus('Juego eliminado', 'success');
+    try {
+        const response = await fetch(`api/portfolio/default/${index}`, { method: 'DELETE' });
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        // Client handles reload and status
+        return true;
+    } catch (error) {
+        console.error('Error deleting default game from server:', error);
+        throw error;
+    }
 }
 
 
@@ -1380,30 +1792,34 @@ async function saveGame(form, editIndex, editType) {
 }
 
 async function saveGameToStorage(gameData, editIndex, editType) {
-    if (useServerApi()) {
-        await saveGameToServer(gameData, editIndex, editType);
+    // Always save to localStorage first
+    if (editType === 'edit-default') {
+        let editedDefaults = JSON.parse(localStorage.getItem('vitalyx_edited_default_games') || '{}');
+        editedDefaults[editIndex] = gameData;
+        localStorage.setItem('vitalyx_edited_default_games', JSON.stringify(editedDefaults));
     } else {
-        if (editType === 'edit-default') {
-            let editedDefaults = JSON.parse(localStorage.getItem('vitalyx_edited_default_games') || '{}');
-            editedDefaults[editIndex] = gameData;
-            localStorage.setItem('vitalyx_edited_default_games', JSON.stringify(editedDefaults));
+        let games = JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]');
+
+        if (editIndex !== null) {
+            games[editIndex] = gameData;
         } else {
-            let games = JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]');
-            
-            if (editIndex !== null) {
-                games[editIndex] = gameData;
-            } else {
-                games.push(gameData);
-            }
-            
-            localStorage.setItem('vitalyx_portfolio_games', JSON.stringify(games));
+            games.push(gameData);
+        }
+
+        localStorage.setItem('vitalyx_portfolio_games', JSON.stringify(games));
+    }
+
+    // Also try to save to server
+    if (useServerApi()) {
+        try {
+            await saveGameToServer(gameData, editIndex, editType);
+            console.log('Game saved to server successfully');
+        } catch (err) {
+            console.warn('Server save failed, game saved locally only', err);
         }
     }
-    
-    // Close modal and refresh portfolio
-    document.getElementById('game-modal').remove();
-    await loadPortfolioGames();
-    showStatus(editType === 'edit-default' ? 'Juego por defecto actualizado' : (editIndex !== null ? 'Juego actualizado' : 'Juego creado'), 'success');
+
+    return true;
 }
 
 function editGame(index) {
@@ -1413,9 +1829,20 @@ function editGame(index) {
     }
 }
 
-function editDefaultGame(index) {
-    const defaultCards = Array.from(document.querySelectorAll('.project-card')).filter(card => card.querySelector('.project-placeholder'));
-    const card = defaultCards[index];
+function editDefaultGame(index, cardElement = null) {
+    // If cardElement is provided, use it directly; otherwise find it by index
+    let card = cardElement;
+    
+    if (!card) {
+        const cards = Array.from(document.querySelectorAll('.project-card'));
+        for (let c of cards) {
+            if (c.dataset.defaultIndex !== undefined && parseInt(c.dataset.defaultIndex) === index) {
+                card = c;
+                break;
+            }
+        }
+    }
+    
     if (!card) return;
 
     const title = card.querySelector('.project-title')?.textContent || '';
@@ -1453,14 +1880,25 @@ function editDefaultGame(index) {
 
 async function deleteGame(index) {
     if (confirm('¿Estás seguro de que quieres eliminar este juego?')) {
-        if (useServerApi()) {
-            await deleteGameServer(index);
-        } else {
+        try {
+            if (useServerApi()) {
+                try {
+                    await deleteGameServer(index);
+                } catch (err) {
+                    console.warn('Server delete failed, deleting locally only', err);
+                }
+            }
+
+            // Always delete from localStorage
             let games = JSON.parse(localStorage.getItem('vitalyx_portfolio_games') || '[]');
             games.splice(index, 1);
             localStorage.setItem('vitalyx_portfolio_games', JSON.stringify(games));
-            loadPortfolioGames();
+
+            await loadPortfolioGames();
             showStatus('Juego eliminado', 'success');
+        } catch (error) {
+            console.error('Error deleting game:', error);
+            showStatus('Error al eliminar juego', 'error');
         }
     }
 }
@@ -1490,8 +1928,9 @@ async function loadPortfolioGames() {
                 const gameCard = createGameCard(editedDefaultGames[index], index, { defaultIndex: index });
                 portfolioGrid.appendChild(gameCard);
             } else {
-                // Use original
+                // Use original - always set the defaultIndex attribute
                 card.dataset.defaultIndex = index;
+                card.dataset.gameId = `default-${index}`;
                 portfolioGrid.appendChild(card);
             }
         }
@@ -1516,9 +1955,11 @@ function createGameCard(game, index, options = {}) {
     
     if (options.hasOwnProperty('defaultIndex')) {
         card.dataset.defaultIndex = options.defaultIndex;
+        card.dataset.gameId = `default-${options.defaultIndex}`;
     }
     if (options.hasOwnProperty('customIndex')) {
         card.dataset.customIndex = options.customIndex;
+        card.dataset.gameId = `custom-${options.customIndex}`;
     }
     
     const categoryText = getCategoryText(game.category);
