@@ -50,3 +50,28 @@ Cuando guardes cambios en VS Code:
 - Los archivos se sirven sin cache durante desarrollo
 - Los datos se guardan en `server-data.json`
 - Compatible con múltiples navegadores simultáneamente
+
+## ☁️ Despliegue en Render
+
+El proyecto ya incluye `render.yaml` en la raíz del repositorio. Para desplegar en Render:
+
+1. Sube el repositorio a GitHub si aún no lo has hecho.
+2. Crea un nuevo servicio en Render y conéctalo a tu repositorio.
+3. Render detectará `render.yaml` y usará:
+   - Root: `.`
+   - Build command: `npm install`
+   - Start command: `npm start`
+4. Asegúrate de que el servicio use Node y que la app se despliegue desde la carpeta raíz del repo.
+
+### Verificación
+
+Después de desplegar, abre:
+
+- `https://<tu-app>.onrender.com/api/status`
+
+Debe devolver un JSON con `status: "running"`.
+
+### Notas
+
+- En Render el servidor debe correr `server.js`, no solo servir HTML estático.
+- Si todo está bien, la API `PUT /api/content` será accesible y los cambios admin se podrán guardar.

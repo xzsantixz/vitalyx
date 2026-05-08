@@ -15,8 +15,16 @@ document.addEventListener('DOMContentLoaded', function() {
     initHeroFloatingCards();
     initSplashWelcome();
     initSecretLoginSequence();
+    
+    // IMPORTANT: Assign IDs to all potential editable elements FIRST
+    // This happens regardless of admin status so content can be loaded
+    assignElementIds();
+    
+    // Then initialize admin editor if logged in
     initAdminEditor();
-    initSavedContentLoader(); // Nueva función para cargar contenido guardado
+    
+    // THEN load saved content (can find elements by their IDs)
+    initSavedContentLoader();
     
     // Load custom portfolio games if on portfolio page
     if (window.location.pathname.includes('portfolio.html')) {
@@ -755,66 +763,54 @@ function initSavedContentLoader() {
 
 async function loadAndApplySavedContent() {
     console.log('Loading saved content...');
+    const localContentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+    let serverData = null;
+    let contentBackup = {};
+
     try {
         // Intentar cargar datos del servidor primero
-        const baseUrl = getApiBaseUrl();
-        const url = `${baseUrl}/api/portfolio`;
+        const url = 'api/portfolio';
         console.log('Fetching from:', url);
 
         const response = await fetch(url);
         console.log('Server response status:', response.status);
 
         if (response.ok) {
-            const data = await response.json();
-            console.log('Server data received:', data);
+            serverData = await response.json();
+            console.log('Server data received:', serverData);
+            contentBackup = serverData.contentBackup || {};
 
-            // Aplicar cambios de contenido editado
-            if (data.contentBackup && Object.keys(data.contentBackup).length > 0) {
-                console.log('Applying contentBackup:', Object.keys(data.contentBackup));
-                Object.entries(data.contentBackup).forEach(([elementId, content]) => {
-                    const element = document.getElementById(elementId);
-                    if (element) {
-                        element.textContent = content;
-                        console.log('Applied content for element:', elementId);
-                    } else {
-                        console.warn('Element not found:', elementId);
-                    }
-                });
-            } else {
-                console.log('No contentBackup data from server');
-            }
-
-            // Si estamos en portfolio, aplicar cambios del portfolio
-            if (window.location.pathname.includes('portfolio.html') || document.querySelector('.portfolio-grid-modern')) {
-                await applyPortfolioChangesFromServer(data);
+            if (!contentBackup || Object.keys(contentBackup).length === 0) {
+                console.log('No contentBackup data from server, keeping localStorage data if present');
             }
         } else {
             console.warn('Server not available, falling back to localStorage. Status:', response.status);
-            // Fallback a localStorage si el servidor no está disponible
-            const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
-            console.log('LocalStorage contentBackup:', Object.keys(contentBackup));
-            Object.entries(contentBackup).forEach(([elementId, content]) => {
-                const element = document.getElementById(elementId);
-                if (element) {
-                    element.textContent = content;
-                    console.log('Applied content from localStorage for element:', elementId);
-                }
-            });
         }
     } catch (error) {
-        console.error('Error loading saved content:', error);
-        // Fallback a localStorage en caso de error
-        const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
-        console.log('Fallback to localStorage contentBackup:', Object.keys(contentBackup));
-        Object.entries(contentBackup).forEach(([elementId, content]) => {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.textContent = content;
-                console.log('Applied content from localStorage (fallback) for element:', elementId);
-            }
-        });
+        console.warn('Error loading from server, falling back to localStorage', error);
     }
-}
+
+    const mergedContentBackup = Object.assign({}, contentBackup, localContentBackup);
+    console.log('Merged content backup keys:', Object.keys(mergedContentBackup));
+
+    Object.entries(mergedContentBackup).forEach(([elementId, content]) => {
+        let element = document.querySelector(`[data-edit-id="${elementId}"]`);
+        if (!element) {
+            element = document.getElementById(elementId);
+        }
+        if (element) {
+            element.textContent = content;
+            element.setAttribute('data-edit-id', elementId);
+            element.id = elementId;
+            console.log('Applied content for element:', elementId);
+        } else {
+            console.warn('Element not found:', elementId);
+        }
+    });
+
+    if (serverData && (window.location.pathname.includes('portfolio.html') || document.querySelector('.portfolio-grid-modern'))) {
+        await applyPortfolioChangesFromServer(serverData);
+    }
 }
 
 async function applyPortfolioChangesFromServer(data) {
@@ -865,9 +861,14 @@ function loadSavedContentFromLocalStorage() {
     // Fallback function for localStorage
     const contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
     Object.keys(contentBackup).forEach(elementId => {
-        const element = document.getElementById(elementId);
+        let element = document.querySelector(`[data-edit-id="${elementId}"]`);
+        if (!element) {
+            element = document.getElementById(elementId);
+        }
         if (element) {
             element.textContent = contentBackup[elementId];
+            element.setAttribute('data-edit-id', elementId);
+            element.id = elementId;
         }
     });
 }
@@ -935,6 +936,48 @@ function initSecretLoginSequence() {
    ======================================== */
 function isAdminUser() {
     return sessionStorage.getItem('vitalyx_admin_logged_in') === 'true';
+}
+
+function assignElementIds() {
+    // Define editable elements
+    const editableSelectors = [
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'p:not(.form-note):not(.footer-legal)',
+        '.hero-subtitle',
+        '.section-title',
+        '.section-description',
+        '.service-description',
+        '.feature-description',
+        '.project-desc',
+        '.faq-answer p',
+        '.contact-subtitle'
+    ];
+    
+    console.log('Assigning element IDs for content tracking...');
+    let elementCounter = 0;
+    
+    editableSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach((element, index) => {
+            if (!element.closest('#admin-panel') && !element.closest('.login-section')) {
+                // Generate consistent ID based on page structure
+                let elementId = element.getAttribute('data-edit-id');
+                if (!elementId) {
+                    // Use a combination of selector and index to make it consistent
+                    const cleanSelector = selector.replace(/[^a-z0-9]/gi, '_');
+                    elementId = 'edit_' + cleanSelector + '_' + index;
+                    element.setAttribute('data-edit-id', elementId);
+                    element.id = elementId;
+                    console.log('Assigned data-edit-id:', elementId);
+                } else {
+                    element.id = elementId;
+                }
+                elementCounter++;
+            }
+        });
+    });
+    
+    console.log('Total elements assigned IDs:', elementCounter);
 }
 
 function initAdminEditor() {
@@ -1055,51 +1098,48 @@ function showAdminNotification() {
 }
 
 function makeElementsEditable() {
-    // Define editable elements
-    const editableSelectors = [
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'p:not(.form-note):not(.footer-legal)',
-        '.hero-subtitle',
-        '.section-title',
-        '.section-description',
-        '.service-description',
-        '.feature-description',
-        '.project-desc',
-        '.faq-answer p',
-        '.contact-subtitle'
-    ];
+    // Make all elements with data-edit-id editable in admin mode
+    // IDs were already assigned by assignElementIds()
+    const editableElements = document.querySelectorAll('[data-edit-id]');
     
-    console.log('Making elements editable and assigning IDs...');
-    let elementCounter = 0;
+    console.log('Making ' + editableElements.length + ' elements editable for admin mode...');
     
-    editableSelectors.forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach((element, index) => {
-            if (!element.closest('#admin-panel') && !element.closest('.login-section')) {
-                // Generate consistent ID based on page structure
-                let elementId = element.getAttribute('data-edit-id');
-                if (!elementId) {
-                    // Use a combination of selector and index to make it consistent
-                    const cleanSelector = selector.replace(/[^a-z0-9]/gi, '_');
-                    elementId = 'edit_' + cleanSelector + '_' + index;
-                    element.setAttribute('data-edit-id', elementId);
-                    console.log('Assigned data-edit-id:', elementId, 'to', element.tagName, element.className.substring(0, 30));
-                }
-                makeEditable(element);
-                elementCounter++;
-            }
-        });
+    editableElements.forEach(element => {
+        if (!element.closest('#admin-panel') && !element.closest('.login-section')) {
+            makeEditable(element);
+        }
     });
     
-    console.log('Total elements made editable:', elementCounter);
+    console.log('Total elements made editable:', editableElements.length);
 }
 
 function makeEditable(element) {
     element.classList.add('editable-element');
     element.setAttribute('contenteditable', 'false');
     
-    // Ensure element has data-edit-id set (should already be set by makeElementsEditable)
-    if (!element.getAttribute('data-edit-id')) {\n        const uniqueId = 'elem_' + element.tagName.toLowerCase() + '_' + Math.random().toString(36).substr(2, 9);\n        element.setAttribute('data-edit-id', uniqueId);\n    }\n    \n    // Create edit indicator\n    const editIndicator = document.createElement('div');\n    editIndicator.className = 'edit-indicator';\n    editIndicator.innerHTML = '<i class=\"fas fa-pencil-alt\"></i>';\n    editIndicator.title = 'Click para editar';\n    \n    element.style.position = 'relative';\n    element.appendChild(editIndicator);\n    \n    // Add click handler\n    element.addEventListener('click', function(e) {\n        if (e.target === editIndicator || editIndicator.contains(e.target)) {\n            e.stopPropagation();\n            startEditing(element);\n        }\n    });\n}
+    // Ensure element has data-edit-id set (should already be set by assignElementIds)
+    if (!element.getAttribute('data-edit-id')) {
+        const uniqueId = 'elem_' + element.tagName.toLowerCase() + '_' + Math.random().toString(36).substr(2, 9);
+        element.setAttribute('data-edit-id', uniqueId);
+        element.id = uniqueId;
+    }
+    // Create edit indicator
+    const editIndicator = document.createElement('div');
+    editIndicator.className = 'edit-indicator';
+    editIndicator.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+    editIndicator.title = 'Click para editar';
+
+    element.style.position = 'relative';
+    element.appendChild(editIndicator);
+    element.style.cursor = 'text';
+
+    // Add click handler: edit when clicking anywhere inside the element
+    element.addEventListener('click', function(e) {
+        if (element.getAttribute('contenteditable') === 'true') return;
+        e.stopPropagation();
+        startEditing(element);
+    });
+}
 
 function startEditing(element) {
     const editIndicator = element.querySelector('.edit-indicator');
@@ -1118,6 +1158,19 @@ function startEditing(element) {
     // Hide indicator while editing
     editIndicator.style.display = 'none';
     
+    let typingSavedText = originalText;
+    const debouncedSave = debounce(() => {
+        const currentText = element.textContent.trim();
+        if (currentText !== typingSavedText) {
+            typingSavedText = currentText;
+            saveContentChange(element, currentText);
+        }
+    }, 500);
+
+    function handleInput() {
+        debouncedSave();
+    }
+
     // Handle finish editing
     let editingFinished = false;
     
@@ -1128,7 +1181,7 @@ function startEditing(element) {
         element.setAttribute('contenteditable', 'false');
         editIndicator.style.display = 'block';
         
-        // Save change
+        // Save final change
         const newText = element.textContent.trim();
         if (newText !== originalText) {
             saveContentChange(element, newText);
@@ -1138,6 +1191,7 @@ function startEditing(element) {
         // Remove event listeners
         element.removeEventListener('blur', finishEditing);
         element.removeEventListener('keydown', handleKeyDown);
+        element.removeEventListener('input', handleInput);
         document.removeEventListener('click', handleOutsideClick);
     }
     
@@ -1159,8 +1213,19 @@ function startEditing(element) {
     
     element.addEventListener('blur', finishEditing);
     element.addEventListener('keydown', handleKeyDown);
+    element.addEventListener('input', handleInput);
     document.addEventListener('click', handleOutsideClick);
 }
+
+window.addEventListener('beforeunload', function() {
+    const editingElements = document.querySelectorAll('[contenteditable="true"]');
+    editingElements.forEach(element => {
+        const elementId = element.getAttribute('data-edit-id') || element.id;
+        if (!elementId) return;
+        const newText = element.textContent.trim();
+        saveContentChangeLocal(elementId, newText);
+    });
+});
 
 async function saveContentChange(element, newText) {
     // Generate consistent ID and store in data attribute
@@ -1202,16 +1267,12 @@ function saveContentChangeLocal(elementId, newText) {
 }
 
 function getApiBaseUrl() {
-    // Siempre usar rutas relativas - el servidor las maneja correctamente
-    // En desarrollo local: rutas relativas funcionan
-    // En Render: el servidor está configurado para manejar rutas desde cualquier base
     return '';
 }
 
 async function saveContentChangeServer(elementId, newText) {
     const headers = { 'Content-Type': 'application/json' };
-    const baseUrl = getApiBaseUrl();
-    const url = `${baseUrl}/api/content`;
+    const url = 'api/content';
     console.log('Making request to:', url);
 
     const response = await fetch(url, {
@@ -1254,8 +1315,7 @@ async function saveAllChanges() {
             let syncedContent = 0;
             for (const [elementId, content] of Object.entries(contentBackup)) {
                 try {
-                    const baseUrl = getApiBaseUrl();
-                    await fetch(`${baseUrl}/api/content`, {
+                    await fetch('api/content', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id: elementId, content })
@@ -1270,8 +1330,7 @@ async function saveAllChanges() {
             let syncedGames = 0;
             for (let i = 0; i < portfolioGames.length; i++) {
                 try {
-                    const baseUrl = getApiBaseUrl();
-                    await fetch(`${baseUrl}/api/portfolio/custom/${i}`, {
+                    await fetch(`api/portfolio/custom/${i}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(portfolioGames[i])
@@ -1286,8 +1345,7 @@ async function saveAllChanges() {
             let syncedEdited = 0;
             for (const [index, gameData] of Object.entries(editedDefaultGames)) {
                 try {
-                    const baseUrl = getApiBaseUrl();
-                    await fetch(`${baseUrl}/api/portfolio/default/${index}`, {
+                    await fetch(`api/portfolio/default/${index}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(gameData)
@@ -1302,8 +1360,7 @@ async function saveAllChanges() {
             let syncedDeleted = 0;
             for (const index of deletedDefaultGames) {
                 try {
-                    const baseUrl = getApiBaseUrl();
-                    await fetch(`${baseUrl}/api/portfolio/default/${index}`, {
+                    await fetch(`api/portfolio/default/${index}`, {
                         method: 'DELETE'
                     });
                     syncedDeleted++;
@@ -1324,6 +1381,7 @@ async function saveAllChanges() {
 
 async function loadSavedContent() {
     console.log('loadSavedContent() called');
+    const localContentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
     let contentBackup = {};
 
     if (useServerApi()) {
@@ -1334,11 +1392,11 @@ async function loadSavedContent() {
             console.log('Loaded from server:', Object.keys(contentBackup).length, 'items');
         } catch (error) {
             console.warn('Could not load admin content from server, falling back to localStorage', error);
-            contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
+            contentBackup = {};
         }
-    } else {
-        contentBackup = JSON.parse(localStorage.getItem('vitalyx_content_backup') || '{}');
     }
+
+    contentBackup = Object.assign({}, contentBackup, localContentBackup);
 
     console.log('Content backup to load:', Object.keys(contentBackup).length, 'items');
     console.log('Available keys:', Object.keys(contentBackup));
@@ -1503,8 +1561,7 @@ function useServerApi() {
 async function getPortfolioState() {
     if (useServerApi()) {
         try {
-            const baseUrl = getApiBaseUrl();
-            const response = await fetch(`${baseUrl}/api/portfolio`);
+            const response = await fetch('api/portfolio');
             if (response.ok) {
                 return await response.json();
             }
@@ -1523,25 +1580,24 @@ async function getPortfolioState() {
 
 async function saveGameToServer(gameData, editIndex, editType) {
     const headers = { 'Content-Type': 'application/json' };
-    const baseUrl = getApiBaseUrl();
     
     try {
         let response;
         
         if (editType === 'edit-default') {
-            response = await fetch(`${baseUrl}/api/portfolio/default/${editIndex}`, {
+            response = await fetch(`api/portfolio/default/${editIndex}`, {
                 method: 'PUT',
                 headers,
                 body: JSON.stringify(gameData)
             });
         } else if (editIndex !== null) {
-            response = await fetch(`${baseUrl}/api/portfolio/custom/${editIndex}`, {
+            response = await fetch(`api/portfolio/custom/${editIndex}`, {
                 method: 'PUT',
                 headers,
                 body: JSON.stringify(gameData)
             });
         } else {
-            response = await fetch(`${baseUrl}/api/portfolio/custom`, {
+            response = await fetch('api/portfolio/custom', {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(gameData)
@@ -1561,8 +1617,7 @@ async function saveGameToServer(gameData, editIndex, editType) {
 
 async function deleteGameServer(index) {
     try {
-        const baseUrl = getApiBaseUrl();
-        const response = await fetch(`${baseUrl}/api/portfolio/custom/${index}`, { method: 'DELETE' });
+        const response = await fetch(`api/portfolio/custom/${index}`, { method: 'DELETE' });
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
         }
@@ -1576,8 +1631,7 @@ async function deleteGameServer(index) {
 
 async function deleteDefaultGameServer(index) {
     try {
-        const baseUrl = getApiBaseUrl();
-        const response = await fetch(`${baseUrl}/api/portfolio/default/${index}`, { method: 'DELETE' });
+        const response = await fetch(`api/portfolio/default/${index}`, { method: 'DELETE' });
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
         }
